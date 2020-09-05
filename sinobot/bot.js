@@ -1,20 +1,11 @@
+const runscripts = require('./runscripts.js');
+
+var auth = require('./auth.json');
+var aliases = require('./database/aliases.json');
+var weaponsDB = require('./database/weaponsDB.json');
+
 var Discord = require('discord.io');
 var logger = require('winston');
-var auth = require('./auth.json');
-var weaponsDB = require('./database/weaponsDB.json');
-const path = require('path')
-const {spawn} = require('child_process')
-
-var updatingWeapon = false;
-
-function runScript(type){
-  return spawn('python', [
-    "-u", 
-    path.join(__dirname, 'sinodbscraper.py'),
-    "-t",
-    type
-    ]);
-}
 
 // Configure logger settings
 logger.remove(logger.transports.Console);
@@ -44,19 +35,17 @@ bot.on('message', function (user, userID, channelID, message, evt) {
         args = args.splice(1);
         switch(cmd) {
             // !ping
+            case 'commands':
+                break;
             case 'update':
-                if (args[0] == 'weapon' || args[0] == 'weapons'){
-                    if (updatingWeapon == true)
-                        break;
-                    updatingWeapon = true;
-                    child = runScript('weapons');
-                    child.on('exit', function() { updatingWeapon = false; });
+                if (args == 'weapon' || args == 'weapons'){
+                    runscripts.runWeaponsScript(bot, channelID);
                 }
-                else if (args[0] == 'armor'){
-                    runScript('armor');
+                else if (args == 'armor'){
+                    runscripts.runArmorScript(bot, channelID);
                 }
-                else if (args[0] == 'nightmare' || args[0] == 'nightmares'){
-                    runScript('nightmares');
+                else if (args == 'nightmare' || args == 'nightmares'){
+                    runscripts.runNightmareScript(bot, channelID);
                 }
                 else{
                     logger.info('The argument is not recognized')
@@ -68,9 +57,11 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                 break;
             case 'weapon':
             case 'weapons':
+                item = aliases[args]
+                itemDetails = weaponsDB[item]
                 bot.sendMessage({
                     to: channelID,
-                    message: "Devola & Popola's Staff"
+                    message: `${item} (${itemDetails['altName']})`
                 });
                 break;
             case 'armor':
