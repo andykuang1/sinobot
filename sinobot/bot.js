@@ -51,7 +51,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                     logger.info('The argument is not recognized')
                     bot.sendMessage({
                         to: channelID,
-                        message: "The argument was not recognized"
+                        message: `"${args}" not recognized`
                     })
                 }
                 break;
@@ -65,10 +65,21 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                 });
                 break;
             case 'armor':
+                item = aliases[args]
+                itemDetails = armorDB[item]
+                bot.sendMessage({
+                    to: channelID,
+                    message: `${item} (${itemDetails['altName']})`
+                });
                 break;
             case 'nightmare':
-                break;
             case 'nightmares':
+                item = aliases[args]
+                itemDetails = nightmaresDB[item]
+                bot.sendMessage({
+                    to: channelID,
+                    message: `${item} (${itemDetails['altName']}) ` 
+                });
                 break;
          }
      }

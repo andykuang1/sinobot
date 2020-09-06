@@ -7,30 +7,26 @@ var updatingArmor = false;
 var updatingNightmares = false;
 
 function runScript(type){
-  return spawn('python', [
-    "-u", 
-    path.join(__dirname, '/scraper/sinodbscraper.py'),
-    "-t",
-    type
-    ]);
+  return spawn('python', ["-u", path.join(__dirname, '/scraper/sinodbscraper.py'), "-t", type]);
 };
 
-module.exports.runWeaponsScript = function(bot, channelID){
+module.exports.runWeaponsScript = function(bot){
     if (updatingWeapons == true){
         bot.sendMessage({
             to: channelID,
             message: "Weapons database is currently being updated."
             });
-        return;
-        }
+        return -1;
+    }
     updatingWeapons = true;
     child = runScript('weapons');
     child.on('exit', function() {
         bot.sendMessage({
             to: channelID,
-            message: "Weapons database has been successfully updated."
+            message: "Weapons database update is complete."
         }); 
         updatingWeapons = false;
+        return 0;
     });
 };
 
@@ -47,11 +43,11 @@ module.exports.runArmorScript = function(bot, channelID){
     child.on('exit', function() {
         bot.sendMessage({
             to: channelID,
-            message: "Armor database has been successfully updated."
+            message: "Armor database update is complete."
         }); 
         updatingArmor = false;
     });
-}
+};
 
 module.exports.runNightmaresScript = function(bot, channelID){
 	if (updatingNightmares == true){
@@ -66,8 +62,8 @@ module.exports.runNightmaresScript = function(bot, channelID){
     child.on('exit', function() {
         bot.sendMessage({
             to: channelID,
-            message: "Nightmare database has been successfully updated."
+            message: "Nightmares database update is complete."
         }); 
         updatingNightmares = false;
     });
-}
+};
