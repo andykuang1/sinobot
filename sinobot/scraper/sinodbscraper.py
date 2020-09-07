@@ -17,16 +17,19 @@ locator = {
 	'submit_button': 'div.dialogOK2',
 	# Shared
 	'table_row': '//tbody//tr',
+	'template_item_table_cell': '(//tbody//tr)[_INDEX_]//td[contains(@class, "_CLASS_")]',
 	'template_item_name': '(//tbody//tr)[_INDEX_]//a[contains(@class, "enname")]',
 	'template_alt_name': '(//tbody//tr)[_INDEX_]//span[contains(@class, "rawname")]',
 	'template_element': '(//tbody//tr)[_INDEX_]//img[contains(@class, "attrImg")]',
+	'template_story_skill': '(//tbody//tr)[_INDEX_]//div[contains(@class, "questTitle")]',
 	# Weapons
 	'template_item_type': '(//tbody//tr)[_INDEX_]//img[contains(@class, "eqtypeImg")]',
-	'template_item_table_cell': '(//tbody//tr)[_INDEX_]//td[contains(@class, "_CLASS_")]',
+	'template_weapon_support_skill': '(//tbody//tr)[_INDEX_]//td[contains(@class, "colGvgAidSkill")]//div[contains(@class, "gvgTitle")]',
+	# Weapon + nightmare
+	'template_colo_skill': '(//tbody//tr)[_INDEX_]//td[contains(@class, "colGvgSkill")]//div[contains(@class, "gvgTitle")]',
 	# Armor
-	'template_effective_against': '(//tbody//tr)[_INDEX_]//span[contains(@class, "en")]'
-
-	# Nightmares
+	'template_effective_against': '(//tbody//tr)[_INDEX_]//span[contains(@class, "en")]',
+	'template_set_effect': '(//tbody//tr)[_INDEX_]//td[contains(@class, "colEffectSeries")]//div[contains(@class, "gvgTitle")]'
 }
 
 ## used for locator template_item_table_cell
@@ -40,12 +43,34 @@ weapon_element_classes = {
 	'total_def': 'colMaxTotalDef',
 	'pdps': 'colMaxAtkImp',
 	'mdps': 'colMaxMAtkImp',
-	'weapon_cost': 'colCost',
-	'colo_skill': 'colGvgSkill',
-	'colo_support': 'colGvgAidSkill'
+	'weapon_cost': 'colCost'
 }
 
 armor_element_classes = {
+	'type': 'colEqType',
+	'pdef': 'colFullPDef',
+	'mdef': 'colFullMDef',
+	'total_stat': 'colFullTotal',
+	'set_total': 'colMaxSetSummary'
+}
+
+nightmare_element_classes = {
+	'base_patk': 'colFullPAtk',
+	'base_pdef': 'colFullPDef',
+	'base_matk': 'colFullMAtk',
+	'base_mdef': 'colFullMDef',
+	'base_total': 'colFullTotal',
+	'evo_patk': 'colMaxPAtk',
+	'evo_pdef': 'colMaxPDef',
+	'evo_matk': 'colMaxMAtk',
+	'evo_mdef': 'colMaxMDef',
+	'evo_total': 'colMaxTotal',
+	'total_atk': 'colMaxTotalAtk',
+	'total_def': 'colMaxTotalDef',
+	'pdps': 'colMaxAtkImp',
+	'mdps': 'colMaxMAtkImp',
+	'prep_time': 'colGvgSkillLead',
+	'duration': 'colGvgSkillDur'
 }
 
 ## used for itemDetails[weapon_type] and itemDetails[ele] in get_item_details
@@ -86,11 +111,9 @@ def switch_to_global(driver):
 def enable_categories(driver, itemType):
 	driver.find_element_by_xpath(locator['field_button']).click()
 	categories = []
-	if itemType == 'weapons':
+	if itemType == 'weapons' or itemType == 'nightmares':
 		categories = ['Tt.ATK', 'Tt.DEF', 'PATK+Tt.DEF', 'MATK+Tt.DEF']
 	elif itemType == 'armor':
-		categories = []
-	elif itemType == 'nightmares':
 		categories = []
 	for category in categories:
 		driver.find_element_by_xpath(locator['template_category_button'].replace('_CATEGORY_', category)).click()
@@ -98,20 +121,26 @@ def enable_categories(driver, itemType):
 
 def get_item_details(driver, index, itemType):
 	# Shared Elements
-	itemElement = driver.find_element_by_xpath(locator['template_element'].replace('_INDEX_', str(index))).get_attribute('src')
 	itemDetails = {
 		'altName': driver.find_element_by_xpath(locator['template_alt_name'].replace('_INDEX_', str(index))).text,
-		'ele': elements[itemElement],
+		'story_skill': driver.find_element_by_xpath(locator['template_story_skill'].replace('_INDEX_', str(index))).text
 	}
+	if itemType != 'nightmares':
+		itemElement = driver.find_element_by_xpath(locator['template_element'].replace('_INDEX_', str(index))).get_attribute('src')
+		itemDetails['ele'] = elements[itemElement]
+	if itemType != 'armor':
+		itemDetails['colo_skill'] = driver.find_element_by_xpath(locator['template_colo_skill'].replace('_INDEX_', str(index))).text
+
 	item_element_classes = {}
 	# Unique elements and get list of classes/elements
 	if itemType == 'weapons':
 		itemType = driver.find_element_by_xpath(locator['template_item_type'].replace('_INDEX_', str(index))).get_attribute('src')
-		itemDetails['weapon_type'] = weaponTypes[itemType]
+		itemDetails['type'] = weaponTypes[itemType]
+		itemDetails['colo_support'] = driver.find_element_by_xpath(locator['template_weapon_support_skill'].replace('_INDEX_', str(index))).text
 		item_element_classes = weapon_element_classes
 	elif itemType == 'armor':
-		enemyType = driver.find_element_by_xpath(locator['template_effective_against'].replace('_INDEX_', str(index))).text
-		itemDetails['effective_against'] = enemyType
+		itemDetails['effective_against'] = driver.find_element_by_xpath(locator['template_effective_against'].replace('_INDEX_', str(index))).text
+		itemDetails['set_effect'] = driver.find_element_by_xpath(locator['template_set_effect'].replace('_INDEX_', str(index))).text
 		item_element_classes = armor_element_classes
 	elif itemType == 'nightmares':
 		item_element_classes = nightmare_element_classes
@@ -119,7 +148,7 @@ def get_item_details(driver, index, itemType):
 		print(f'Argument for the command is not recognized {itemType}. Execution should not have reached here')
 
 	# Iterate through unique elements
-	for key in item_element_classes.keys():
+	for key in item_element_classes:
 		itemDetails[key] = driver.find_element_by_xpath(locator['template_item_table_cell'].replace('_INDEX_', str(index)).replace('_CLASS_', item_element_classes[key])).text
 	return itemDetails
 
@@ -132,7 +161,7 @@ def main(argv):
 	fileNameDict = {
 		'weapons': 'database/weaponsDB.json',
 		'armor': 'database/armorDB.json',
-		'nightmares': 'database/nightmareDB.json'
+		'nightmares': 'database/nightmaresDB.json'
 	}
 
 	itemType = ''

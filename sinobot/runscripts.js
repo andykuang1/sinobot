@@ -10,15 +10,19 @@ function runScript(type){
   return spawn('python', ["-u", path.join(__dirname, '/scraper/sinodbscraper.py'), "-t", type]);
 };
 
-module.exports.runWeaponsScript = function(bot){
+module.exports.runWeaponsScript = function(bot, channelID){
     if (updatingWeapons == true){
         bot.sendMessage({
             to: channelID,
             message: "Weapons database is currently being updated."
             });
-        return -1;
+        return;
     }
     updatingWeapons = true;
+    bot.sendMessage({
+        to: channelID,
+        message: "Beginning weapons database update. This can take up to 5 minutes. Please feel free to use the old database in the meantime."
+    });
     child = runScript('weapons');
     child.on('exit', function() {
         bot.sendMessage({
@@ -26,7 +30,6 @@ module.exports.runWeaponsScript = function(bot){
             message: "Weapons database update is complete."
         }); 
         updatingWeapons = false;
-        return 0;
     });
 };
 
@@ -39,6 +42,10 @@ module.exports.runArmorScript = function(bot, channelID){
         return;
 	}
     updatingArmor = true;
+    bot.sendMessage({
+        to: channelID,
+        message: "Beginning armor database update. This can take up to 5 minutes. Please feel free to use the old database in the meantime."
+    });
     child = runScript('armor');
     child.on('exit', function() {
         bot.sendMessage({
@@ -58,6 +65,10 @@ module.exports.runNightmaresScript = function(bot, channelID){
         return;
 	}
     updatingNightmares = true;
+    bot.sendMessage({
+        to: channelID,
+        message: "Beginning nightmares database update. This can take up to 5 minutes. Please feel free to use the old database in the meantime."
+    });
     child = runScript('nightmares');
     child.on('exit', function() {
         bot.sendMessage({
