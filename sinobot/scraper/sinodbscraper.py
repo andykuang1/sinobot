@@ -200,7 +200,7 @@ def main(argv):
 	with open('database/aliases.json') as f:
 		aliases = json.load(f)
 	for i in range(1, numElements+1):
-		itemName = driver.find_element_by_xpath(locator['template_item_name'].replace('_INDEX_', str(i))).text
+		itemName = driver.find_element_by_xpath(locator['template_item_name'].replace('_INDEX_', str(i))).text.replace('’', '\'')
 		itemDetails = get_item_details(driver, i, itemType)
 		itemsDict[itemName] = itemDetails
 		itemNameAlias = itemName.replace(' ', '').lower()
@@ -209,9 +209,8 @@ def main(argv):
 		secondAlias = itemNameAlias.replace('\'', '')
 		if secondAlias not in aliases:
 			aliases.update({secondAlias: itemName})
-
 	driver.close()
-
+	
 	# Dump data to file
 	with open(fileNameDict[itemType], 'w', encoding='utf8') as outputFile:
 		json.dump(itemsDict, outputFile, ensure_ascii=False)

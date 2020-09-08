@@ -29,23 +29,26 @@ function formatStats(itemDetails){
     formattedString = `\`\`\`PATK: ${formatSpacing(itemDetails['patk'])}\tMATK: ${formatSpacing(itemDetails['matk'])}\
             \nPDEF: ${formatSpacing(itemDetails['pdef'])}\tMDEF: ${formatSpacing(itemDetails['mdef'])}`;
     // Total ATK only for supports
-    if (itemDetails['type'] in ['Instrument', 'Tome']){
-        formattedString += `\nTotal ATK: ${formatSpacing(itemDetails['total_atk'])}`;
+    if (['Instrument', 'Tome'].includes(itemDetails['type'])){
+        formattedString += `\n\nTotal ATK: ${formatSpacing(itemDetails['total_atk'])}\
+        \nTotal DEF: ${formatSpacing(itemDetails['total_def'])}`;
     }
-    // Shared detail again
-    formattedString += `\n\nTotal DEF: ${formatSpacing(itemDetails['total_def'])}`;
-    if (itemDetails['type'] in pdps){
-        formattedString += `\nTotal PDPS Stat: ${formatSpacing(itemDetails['pdps'])}`;
+    else{
+        // Shared detail again
+        formattedString += `\n\nTotal DEF: ${formatSpacing(itemDetails['total_def'])}`;
     }
-    else
-        formattedString = formattedString;
+    // details by weapon type
+    if (pdps.includes(itemDetails['type']))
+        formattedString += `\nTotal PDPS Stat (PATK+T.DEF): ${formatSpacing(itemDetails['pdps'])}`;
+    if (mdps.includes(itemDetails['type']))
+        formattedString += `\nTotal MDPS Stat (MATK+T.DEF): ${formatSpacing(itemDetails['mdps'])}`;
     formattedString += `\nTotal Stat: ${itemDetails['total_stat'].replace(whitespace_regex, '')}\`\`\``;
     return formattedString;
 };
 
 function formatSkills(itemDetails, type){
     if (type == 'weapon'){
-        formattedString = `**${itemDetails['story_skill'].split('\n')[0]}**: ${itemDetails['story_skill'].split('\n')[1].replace('')}\
+        formattedString = `**${itemDetails['story_skill'].split('\n')[0]}**: ${itemDetails['story_skill'].split('\n')[1]}\
             \n\n**${itemDetails['colo_skill'].split('\n')[0]}**: ${itemDetails['colo_skill'].split('\n')[1]}\
             \n\n**${itemDetails['colo_support'].split('\n')[0]}**: ${itemDetails['colo_support'].split('\n')[1]}`
     }
