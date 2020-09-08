@@ -18,18 +18,19 @@ locator = {
 	# Shared
 	'table_row': '//tbody//tr',
 	'template_item_table_cell': '(//tbody//tr)[_INDEX_]//td[contains(@class, "_CLASS_")]',
+	'template_item_icon': '(//tbody//tr)[_INDEX_]//td[contains(@class, "colIcon")]//img',
 	'template_item_name': '(//tbody//tr)[_INDEX_]//a[contains(@class, "enname")]',
 	'template_alt_name': '(//tbody//tr)[_INDEX_]//span[contains(@class, "rawname")]',
 	'template_element': '(//tbody//tr)[_INDEX_]//img[contains(@class, "attrImg")]',
-	'template_story_skill': '(//tbody//tr)[_INDEX_]//div[contains(@class, "questTitle")]',
 	# Weapons
 	'template_item_type': '(//tbody//tr)[_INDEX_]//img[contains(@class, "eqtypeImg")]',
-	'template_weapon_support_skill': '(//tbody//tr)[_INDEX_]//td[contains(@class, "colGvgAidSkill")]//div[contains(@class, "gvgTitle")]',
+	'template_weapon_support_skill': '(//tbody//tr)[_INDEX_]//td[contains(@class, "colGvgAidSkill")]',
 	# Weapon + nightmare
-	'template_colo_skill': '(//tbody//tr)[_INDEX_]//td[contains(@class, "colGvgSkill")]//div[contains(@class, "gvgTitle")]',
+	'template_story_skill': '(//tbody//tr)[_INDEX_]//td[contains(@class, "colQuestSkill")]',
+	'template_colo_skill': '(//tbody//tr)[_INDEX_]//td[contains(@class, "colGvgSkill")]',
 	# Armor
 	'template_effective_against': '(//tbody//tr)[_INDEX_]//span[contains(@class, "en")]',
-	'template_set_effect': '(//tbody//tr)[_INDEX_]//td[contains(@class, "colEffectSeries")]//div[contains(@class, "gvgTitle")]'
+	'template_set_effect': '(//tbody//tr)[_INDEX_]//td[contains(@class, "colEffectSeries")]'
 }
 
 ## used for locator template_item_table_cell
@@ -51,7 +52,8 @@ armor_element_classes = {
 	'pdef': 'colFullPDef',
 	'mdef': 'colFullMDef',
 	'total_stat': 'colFullTotal',
-	'set_total': 'colMaxSetSummary'
+	'set_total': 'colMaxSetSummary',
+	'story_skill': 'colArmorSkill'
 }
 
 nightmare_element_classes = {
@@ -122,6 +124,7 @@ def enable_categories(driver, itemType):
 def get_item_details(driver, index, itemType):
 	# Shared Elements
 	itemDetails = {
+		'icon': driver.find_element_by_xpath(locator['template_item_icon'].replace('_INDEX_', str(index))).get_attribute('src'),
 		'altName': driver.find_element_by_xpath(locator['template_alt_name'].replace('_INDEX_', str(index))).text,
 		'story_skill': driver.find_element_by_xpath(locator['template_story_skill'].replace('_INDEX_', str(index))).text
 	}
@@ -129,6 +132,7 @@ def get_item_details(driver, index, itemType):
 		itemElement = driver.find_element_by_xpath(locator['template_element'].replace('_INDEX_', str(index))).get_attribute('src')
 		itemDetails['ele'] = elements[itemElement]
 	if itemType != 'armor':
+		itemDetails['story_skill'] = driver.find_element_by_xpath(locator['template_story_skill'].replace('_INDEX_', str(index))).text
 		itemDetails['colo_skill'] = driver.find_element_by_xpath(locator['template_colo_skill'].replace('_INDEX_', str(index))).text
 
 	item_element_classes = {}
@@ -193,15 +197,26 @@ def main(argv):
 	elem = driver.find_elements_by_xpath(locator['table_row'])
 	numElements = len(elem)
 	itemsDict = {}
+	with open('database/aliases.json') as f:
+		aliases = json.load(f)
 	for i in range(1, numElements+1):
 		itemName = driver.find_element_by_xpath(locator['template_item_name'].replace('_INDEX_', str(i))).text
 		itemDetails = get_item_details(driver, i, itemType)
 		itemsDict[itemName] = itemDetails
+		itemNameAlias = itemName.replace(' ', '').lower()
+		if itemNameAlias not in aliases:
+			aliases.update({itemNameAlias: itemName})
+		secondAlias = itemNameAlias.replace('\'', '')
+		if secondAlias not in aliases:
+			aliases.update({secondAlias: itemName})
+
 	driver.close()
 
 	# Dump data to file
 	with open(fileNameDict[itemType], 'w', encoding='utf8') as outputFile:
 		json.dump(itemsDict, outputFile, ensure_ascii=False)
+	with open('database/aliases.json', 'w', encoding='utf8') as aliasesOutput:
+		json.dump(aliases, aliasesOutput, ensure_ascii=False)
 
 if __name__ == "__main__":
 	main(sys.argv[1:])

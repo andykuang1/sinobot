@@ -16,7 +16,7 @@ module.exports.runWeaponsScript = function(message){
         return;
     }
     updatingWeapons = true;
-    message.channel.send("Beginning weapons database update. This can take up to 5 minutes. Please feel free to use the old database in the meantime.");
+    message.channel.send("Beginning weapons database update. This can take up to 5 minutes. Please feel free to continue using the old database in the meantime.");
     child = runScript('weapons');
     child.on('exit', function() {
         message.channel.send("Weapons database update is complete."); 
@@ -30,7 +30,7 @@ module.exports.runArmorScript = function(message){
         return;
 	}
     updatingArmor = true;
-    message.channel.send("Beginning armor database update. This can take up to 5 minutes. Please feel free to use the old database in the meantime.");
+    message.channel.send("Beginning armor database update. This can take up to 5 minutes. Please feel free to continue using the old database in the meantime.");
     child = runScript('armor');
     child.on('exit', function() {
         message.channel.send("Armor database update is complete."); 
@@ -44,7 +44,7 @@ module.exports.runNightmaresScript = function(message){
         return;
 	}
     updatingNightmares = true;
-    message.channel.send("Beginning nightmares database update. This can take up to 5 minutes. Please feel free to use the old database in the meantime.");
+    message.channel.send("Beginning nightmares database update. This can take up to 5 minutes. Please feel free to continue using the old database in the meantime.");
     child = runScript('nightmares');
     child.on('exit', function() {
         message.channel.send("Nightmares database update is complete."); 

@@ -8,6 +8,50 @@ const nightmaresDB = require('./database/nightmaresDB.json');
 
 const Discord = require('discord.js');
 
+const skill_icons = {
+    'story': 'https://sinoalice.game-db.tw/images/battle_icon01.png',
+    'armor_story': 'https://sinoalice.game-db.tw/images/battle_icon02.png',
+    'colo': 'https://sinoalice.game-db.tw/images/battle_icon01.png',
+    'colo_support': 'https://sinoalice.game-db.tw/images/battle_icon04.png'
+};
+
+whitespace_regex = /\s+/g;
+
+//takes and returns a string
+function formatSpacing(number){
+    return (number < 1000) ? ' ' + number : number;
+}
+
+function formatStats(itemDetails){
+    pdps = ['Hammer', 'Sword', 'Instrument', 'Tome'];
+    mdps = ['Orb', 'Spear', 'Ranged', 'Instrument', 'Tome'];
+    // Shared details first
+    formattedString = `\`\`\`PATK: ${formatSpacing(itemDetails['patk'])}\tMATK: ${formatSpacing(itemDetails['matk'])}\
+            \nPDEF: ${formatSpacing(itemDetails['pdef'])}\tMDEF: ${formatSpacing(itemDetails['mdef'])}`;
+    // Total ATK only for supports
+    if (itemDetails['type'] in ['Instrument', 'Tome']){
+        formattedString += `\nTotal ATK: ${formatSpacing(itemDetails['total_atk'])}`;
+    }
+    // Shared detail again
+    formattedString += `\n\nTotal DEF: ${formatSpacing(itemDetails['total_def'])}`;
+    if (itemDetails['type'] in pdps){
+        formattedString += `\nTotal PDPS Stat: ${formatSpacing(itemDetails['pdps'])}`;
+    }
+    else
+        formattedString = formattedString;
+    formattedString += `\nTotal Stat: ${itemDetails['total_stat'].replace(whitespace_regex, '')}\`\`\``;
+    return formattedString;
+};
+
+function formatSkills(itemDetails, type){
+    if (type == 'weapon'){
+        formattedString = `**${itemDetails['story_skill'].split('\n')[0]}**: ${itemDetails['story_skill'].split('\n')[1].replace('')}\
+            \n\n**${itemDetails['colo_skill'].split('\n')[0]}**: ${itemDetails['colo_skill'].split('\n')[1]}\
+            \n\n**${itemDetails['colo_support'].split('\n')[0]}**: ${itemDetails['colo_support'].split('\n')[1]}`
+    }
+    return formattedString;
+};
+
 // Initialize Discord Bot
 var client = new Discord.Client({autoreconnect: true});
 client.login(config['token']);
@@ -42,23 +86,34 @@ client.on('message', function (message) {
                 break;
             case 'weapon':
             case 'weapons':
-                item = args.join('').toLowerCase();
                 // If item is not in our current database, check if it is an alias. If not, return error
-                if (!(item in weaponsDB)){
-                    item = aliases[item];
+                fullArgument = args.join(' ')
+                if (!(fullArgument in weaponsDB)){
+                    item = aliases[fullArgument.replace(' ', '').toLowerCase()];
                     if (item == null){
-                        message.channel.send(`"${args.join(' ')}" was not found in the database.`);
+                        message.channel.send(`"${fullArgument}" was not found in the database.`);
                         return;
                     }
                 }
+                else
+                    item = fullArgument;
                 itemDetails = weaponsDB[item];
                 // Build message to send
                 embeddedMessage = new Discord.MessageEmbed({
-                    'title': 'dpstaff',
-                    'url': `https://sinoalice.game-db.tw/weapons/${itemDetails['altName']}`
+                    title: `${item} (${itemDetails['altName']})`,
+                    url: `https://sinoalice.game-db.tw/weapons/${itemDetails['altName']}`,
+                    thumbnail: {url: itemDetails['icon']},
+                    fields: [
+                        {
+                            name: 'Stats',
+                            value: formatStats(itemDetails)
+                        },
+                        {
+                            name: 'Skills',
+                            value: formatSkills(itemDetails, 'weapon')
+                        }
+                    ]
                 });
-                //embeddedMessage['title'] = `**${item}** (${itemDetails['altName']})`;
-                //embeddedMessage['url'] = `*https://sinoalice.game-db.tw/weapons/${itemDetails['altName']}*`;
                 message.channel.send(embeddedMessage);
                 break;
             case 'armor':
