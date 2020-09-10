@@ -126,7 +126,6 @@ def get_item_details(driver, index, itemType):
 	itemDetails = {
 		'icon': driver.find_element_by_xpath(locator['template_item_icon'].replace('_INDEX_', str(index))).get_attribute('src'),
 		'altName': driver.find_element_by_xpath(locator['template_alt_name'].replace('_INDEX_', str(index))).text,
-		'story_skill': driver.find_element_by_xpath(locator['template_story_skill'].replace('_INDEX_', str(index))).text
 	}
 	if itemType != 'nightmares':
 		itemElement = driver.find_element_by_xpath(locator['template_element'].replace('_INDEX_', str(index))).get_attribute('src')
@@ -197,7 +196,7 @@ def main(argv):
 	elem = driver.find_elements_by_xpath(locator['table_row'])
 	numElements = len(elem)
 	itemsDict = {}
-	with open('database/aliases.json') as f:
+	with open(f'database/{itemType}aliases.json') as f:
 		aliases = json.load(f)
 	for i in range(1, numElements+1):
 		itemName = driver.find_element_by_xpath(locator['template_item_name'].replace('_INDEX_', str(i))).text.replace('’', '\'')
@@ -215,7 +214,7 @@ def main(argv):
 	# Dump data to file
 	with open(fileNameDict[itemType], 'w', encoding='utf8') as outputFile:
 		json.dump(itemsDict, outputFile, ensure_ascii=False)
-	with open('database/aliases.json', 'w', encoding='utf8') as aliasesOutput:
+	with open(f'database/{itemType}aliases.json', 'w', encoding='utf8') as aliasesOutput:
 		json.dump(aliases, aliasesOutput, ensure_ascii=False)
 
 if __name__ == "__main__":

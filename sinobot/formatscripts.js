@@ -30,6 +30,8 @@ module.exports.formatWeaponStats = function(itemDetails){
 };
 
 module.exports.formatArmorStats = function(itemDetails){
+    formattedString = `\nPDEF: ${formatSpacing(itemDetails['pdef'])}\tMDEF: ${formatSpacing(itemDetails['mdef'])}\
+        \n\nTotal DEF: ${formatSpacing(itemDetails['total_def'])}`;
 }
 
 module.exports.formatSkills = function(itemDetails, type){
@@ -37,6 +39,10 @@ module.exports.formatSkills = function(itemDetails, type){
         formattedString = `**${itemDetails['story_skill'].split('\n')[0]}**: ${itemDetails['story_skill'].split('\n')[1]}\
             \n\n**${itemDetails['colo_skill'].split('\n')[0]}**: ${itemDetails['colo_skill'].split('\n')[1]}\
             \n\n**${itemDetails['colo_support'].split('\n')[0]}**: ${itemDetails['colo_support'].split('\n')[1]}`
+    }
+    else if (type == 'armor'){
+        formattedString = `**${itemDetails['story_skill'].split('\n')[0]}**: ${itemDetails['story_skill'].split('\n')[1]}\
+            \n\n**${itemDetails['set_effect'].split('\n')[0]}**: ${itemDetails['set_effect'].split('\n')[1]}`
     }
     return formattedString;
 };

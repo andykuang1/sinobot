@@ -2,9 +2,11 @@ const runscripts = require('./runscripts.js');
 const formatscripts = require('./formatscripts.js');
 
 const config = require('./config.json');
-const weaponaliases = require('./database/weaponaliases.json');
+const weaponsaliases = require('./database/weaponsaliases.json');
+const armoraliases = require('./database/armoraliases.json');
 const weaponsDB = require('./database/weaponsDB.json');
 const armorDB = require('./database/armorDB.json');
+const armorsetsDB = require('./database/armorsetsDB.json');
 const nightmaresDB = require('./database/nightmaresDB.json');
 
 const Discord = require('discord.js');
@@ -33,9 +35,10 @@ client.on('message', function (message) {
        
         args = args.splice(1);
         switch(cmd) {
-            // !ping
+            // !commands
             case 'commands':
                 break;
+            // !update [type]    ex. !update weapons
             case 'update':
                 if (args == 'weapon' || args == 'weapons')
                     runscripts.runWeaponsScript(message);
@@ -48,12 +51,13 @@ client.on('message', function (message) {
                     message.channel.send(`"${args}" not recognized`);
                 }
                 break;
+            // !weapon [itemName]    ex. !weapon dpstaff
             case 'weapon':
             case 'weapons':
                 // If item is not in our current database, check if it is an alias. If not, return error
                 fullArgument = args.join(' ')
                 if (!(fullArgument in weaponsDB)){
-                    item = weaponaliases[fullArgument.replace(' ', '').toLowerCase()];
+                    item = weaponsaliases[fullArgument.replace(' ', '').toLowerCase()];
                     if (item == null){
                         message.channel.send(`"${fullArgument}" was not found in the database.`);
                         return;
@@ -80,20 +84,58 @@ client.on('message', function (message) {
                 });
                 message.channel.send(embeddedMessage);
                 break;
+            // !armor [type] [itemName]    ex. !armor set replicant
             case 'armor':
-                item = args.join('').toLowerCase();
-                // If item is not in our current database, check if it is an alias. If not, return error
-                if (!(item in armorDB)){
-                    item = armoraliases[item];
-                    if (item == null){
-                        message.channel.send(`"${args.join(' ')}" was not found in the database.`);
-                        return;
+                type = args[0];
+                itemName = args.slice(1).join(' ');
+
+                if (type == 'set'){
+                    // If item is not in our current database, check if it is an alias. If not, return error
+                    if (!(itemName in armorsetsDB)){
+                        itemSet = armoraliases[itemName.replace(' ', '').toLowerCase()];
+                        if (itemSet == null){
+                            message.channel.send(`"${itemName}" was not found in the database.`);
+                            return;
+                        }
                     }
+                    else
+                        itemSet = armorsetsDB[itemName];
+                    // Build Message to send
+
                 }
-                itemDetails = armorDB[item];
-                // Build message to send
-                message.channel.send(`${item} (${itemDetails['altName']})`);
-                break;
+                else if (['head', 'hands', 'feet', 'body'].includes(type.toLowerCase())){
+                    // If item is not in our current database, check if it is an alias. If not, return error
+                    if (!(itemName in armorDB)){
+                        itemName = armoraliases[itemName.replace(' ', '').toLowerCase()];
+                        if (itemName == null){
+                            message.channel.send(`"${args.join(' ')}" was not found in the database.`);
+                            return;
+                        }
+                    }
+                    itemDetails = armorDB[item];
+                    // Build message to send
+                    embeddedMessage = new Discord.MessageEmbed({
+                    title: `${item} (${itemDetails['altName']})`,
+                    url: `https://sinoalice.game-db.tw/armor/${itemDetails['altName']}`,
+                    thumbnail: {url: itemDetails['icon']},
+                    fields: [
+                        {
+                            name: 'Stats',
+                            value: formatscripts.formatWeaponStats(itemDetails)
+                        },
+                        {
+                            name: 'Skills',
+                            value: formatscripts.formatSkills(itemDetails, 'weapon')
+                        }
+                    ]
+                });
+                message.channel.send(embeddedMessage);
+                    break;
+                }
+                else {
+                    message.channel.send(`"${type}" is an invalid option`);
+                    return;
+                }
             case 'nightmare':
             case 'nightmares':
                 item = args.join('').toLowerCase();

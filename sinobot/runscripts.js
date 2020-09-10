@@ -1,7 +1,7 @@
 var Discord = require('discord.js');
 const {spawn} = require('child_process');
 const path = require('path');
-const armorsets = require('./database/armorsets.json');
+const armorsets = require('./database/armorsetsDB.json');
 const fs = require('fs');
 
 var updatingWeapons = false;
