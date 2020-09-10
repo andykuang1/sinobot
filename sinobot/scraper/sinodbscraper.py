@@ -203,6 +203,7 @@ def main(argv):
 		itemName = driver.find_element_by_xpath(locator['template_item_name'].replace('_INDEX_', str(i))).text.replace('’', '\'')
 		itemDetails = get_item_details(driver, i, itemType)
 		itemsDict[itemName] = itemDetails
+		# Add common item aliases
 		itemNameAlias = itemName.replace(' ', '').lower()
 		if itemNameAlias not in aliases:
 			aliases.update({itemNameAlias: itemName})

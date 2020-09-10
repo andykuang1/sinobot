@@ -1,7 +1,8 @@
 const runscripts = require('./runscripts.js');
+const formatscripts = require('./formatscripts.js');
 
 const config = require('./config.json');
-const aliases = require('./database/aliases.json');
+const weaponaliases = require('./database/weaponaliases.json');
 const weaponsDB = require('./database/weaponsDB.json');
 const armorDB = require('./database/armorDB.json');
 const nightmaresDB = require('./database/nightmaresDB.json');
@@ -13,46 +14,6 @@ const skill_icons = {
     'armor_story': 'https://sinoalice.game-db.tw/images/battle_icon02.png',
     'colo': 'https://sinoalice.game-db.tw/images/battle_icon01.png',
     'colo_support': 'https://sinoalice.game-db.tw/images/battle_icon04.png'
-};
-
-whitespace_regex = /\s+/g;
-
-//takes and returns a string
-function formatSpacing(number){
-    return (number < 1000) ? ' ' + number : number;
-}
-
-function formatStats(itemDetails){
-    pdps = ['Hammer', 'Sword', 'Instrument', 'Tome'];
-    mdps = ['Orb', 'Spear', 'Ranged', 'Instrument', 'Tome'];
-    // Shared details first
-    formattedString = `\`\`\`PATK: ${formatSpacing(itemDetails['patk'])}\tMATK: ${formatSpacing(itemDetails['matk'])}\
-            \nPDEF: ${formatSpacing(itemDetails['pdef'])}\tMDEF: ${formatSpacing(itemDetails['mdef'])}`;
-    // Total ATK only for supports
-    if (['Instrument', 'Tome'].includes(itemDetails['type'])){
-        formattedString += `\n\nTotal ATK: ${formatSpacing(itemDetails['total_atk'])}\
-        \nTotal DEF: ${formatSpacing(itemDetails['total_def'])}`;
-    }
-    else{
-        // Shared detail again
-        formattedString += `\n\nTotal DEF: ${formatSpacing(itemDetails['total_def'])}`;
-    }
-    // details by weapon type
-    if (pdps.includes(itemDetails['type']))
-        formattedString += `\nTotal PDPS Stat (PATK+T.DEF): ${formatSpacing(itemDetails['pdps'])}`;
-    if (mdps.includes(itemDetails['type']))
-        formattedString += `\nTotal MDPS Stat (MATK+T.DEF): ${formatSpacing(itemDetails['mdps'])}`;
-    formattedString += `\nTotal Stat: ${itemDetails['total_stat'].replace(whitespace_regex, '')}\`\`\``;
-    return formattedString;
-};
-
-function formatSkills(itemDetails, type){
-    if (type == 'weapon'){
-        formattedString = `**${itemDetails['story_skill'].split('\n')[0]}**: ${itemDetails['story_skill'].split('\n')[1]}\
-            \n\n**${itemDetails['colo_skill'].split('\n')[0]}**: ${itemDetails['colo_skill'].split('\n')[1]}\
-            \n\n**${itemDetails['colo_support'].split('\n')[0]}**: ${itemDetails['colo_support'].split('\n')[1]}`
-    }
-    return formattedString;
 };
 
 // Initialize Discord Bot
@@ -92,7 +53,7 @@ client.on('message', function (message) {
                 // If item is not in our current database, check if it is an alias. If not, return error
                 fullArgument = args.join(' ')
                 if (!(fullArgument in weaponsDB)){
-                    item = aliases[fullArgument.replace(' ', '').toLowerCase()];
+                    item = weaponaliases[fullArgument.replace(' ', '').toLowerCase()];
                     if (item == null){
                         message.channel.send(`"${fullArgument}" was not found in the database.`);
                         return;
@@ -109,11 +70,11 @@ client.on('message', function (message) {
                     fields: [
                         {
                             name: 'Stats',
-                            value: formatStats(itemDetails)
+                            value: formatscripts.formatWeaponStats(itemDetails)
                         },
                         {
                             name: 'Skills',
-                            value: formatSkills(itemDetails, 'weapon')
+                            value: formatscripts.formatSkills(itemDetails, 'weapon')
                         }
                     ]
                 });
@@ -123,7 +84,7 @@ client.on('message', function (message) {
                 item = args.join('').toLowerCase();
                 // If item is not in our current database, check if it is an alias. If not, return error
                 if (!(item in armorDB)){
-                    item = aliases[item];
+                    item = armoraliases[item];
                     if (item == null){
                         message.channel.send(`"${args.join(' ')}" was not found in the database.`);
                         return;
@@ -138,7 +99,7 @@ client.on('message', function (message) {
                 item = args.join('').toLowerCase();
                 // If item is not in our current database, check if it is an alias. If not, return error
                 if (!(item in nightmaresDB)){
-                    item = aliases[item];
+                    item = nightmarealiases[item];
                     if (item == null){
                         message.channel.send(`"${args.join(' ')}" was not found in the database.`);
                         return;
