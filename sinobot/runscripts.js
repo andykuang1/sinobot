@@ -16,16 +16,17 @@ function readFileCallback(err, data){
     if (err){
         console.log(err);
     } else{
-        aliases = JSON.parse(data);
-        for (item in armorsets){
-            mergedLowercase = item.replace(' ', '').toLowerCase()
-            if (!(mergedLowercase in aliases))
-                aliases[mergedLowercase] = item;
-            noApostrophes = mergedLowercase.replace('\'', '');
-            if (!(noApostrophes in aliases))
-                aliases[noApostrophes] = item;
+        aliasesFileData = JSON.parse(data);
+        for (setName in armorsets){
+            aliasesList = [setName.replace(' ', ''), setName.toLowerCase(), setName.replace('\'', ''), 
+            setName.replace(' ', '').toLowerCase(), setName.replace(' ', '').replace('\'', ''), setName.toLowerCase().replace('\'', ''),
+            setName.replace(' ', '').toLowerCase().replace('\'', '')]
+            aliasesList.forEach(alias => {
+                if (!(alias in aliasesFileData))
+                    aliasesFileData[alias] = setName;
+            })
         }
-        json = JSON.stringify(aliases);
+        json = JSON.stringify(aliasesFileData);
         fs.writeFile('./database/armoraliases.json', json, 'utf8', function writeCallback(err){if (err) throw err;});
     }
 }
@@ -42,7 +43,7 @@ module.exports.runWeaponsScript = function(message){
         return;
     }
     updatingWeapons = true;
-    message.channel.send("Beginning weapons database update. This can take up to 5 minutes. Please feel free to continue using the old database in the meantime.");
+    message.channel.send("Beginning weapons database update. This can take up to 5 minutes. Please feel free to continue using the old database in the meantime. Updated database will not be used until restart.");
     child = runScraperScript('weapons');
     child.on('exit', function() {
         message.channel.send("Weapons database update is complete."); 
@@ -56,7 +57,7 @@ module.exports.runArmorScript = function(message){
         return;
 	}
     updatingArmor = true;
-    message.channel.send("Beginning armor database update. This can take up to 5 minutes. Please feel free to continue using the old database in the meantime.");
+    message.channel.send("Beginning armor database update. This can take up to 5 minutes. Please feel free to continue using the old database in the meantime. Updated database will not be used until restart.");
     child = runScraperScript('armor');
     child.on('exit', function() {
         message.channel.send("Armor database update is complete."); 
@@ -66,7 +67,7 @@ module.exports.runArmorScript = function(message){
 
 module.exports.runNightmaresScript = function(message){
 	if (updatingNightmares == true){
-        message.channel.send("Nightmare database is currently being updated.");
+        message.channel.send("Beginning nightmare database update. This can take up to 5 minutes. Please feel free to continue using the old database in the meantime. Updated database will not be used until restart.");
         return;
 	}
     updatingNightmares = true;

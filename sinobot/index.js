@@ -26,6 +26,21 @@ client.once('ready', function () {
     console.log('Ready!');
 });
 
+function getFullName(itemSet, item, itemWeapon){
+    fullItemNameParens = `${itemSet[item]} (${formatscripts.capitalize(itemWeapon)})`;
+    fullItemNameBrackets = `${itemSet[item]} [${formatscripts.capitalize(itemWeapon)}]`;
+    if (fullItemNameParens in armorDB)
+        fullItemName = fullItemNameParens;
+    else if (fullItemNameBrackets in armorDB)
+        fullItemName = fullItemNameBrackets;
+    else{
+        console.log('The item was not found in the database');
+        message.channel.send('The item was not found in the database');
+        exit();
+    }
+    return fullItemName;
+}
+
 client.on('message', function (message) {
     // Our bot needs to know if it will execute a command
     // It will listen for messages that will start with `!`
@@ -57,7 +72,7 @@ client.on('message', function (message) {
                 // If item is not in our current database, check if it is an alias. If not, return error
                 fullArgument = args.join(' ')
                 if (!(fullArgument in weaponsDB)){
-                    item = weaponsaliases[fullArgument.replace(' ', '').toLowerCase()];
+                    item = weaponsaliases[fullArgument];
                     if (item == null){
                         message.channel.send(`"${fullArgument}" was not found in the database.`);
                         return;
@@ -84,15 +99,40 @@ client.on('message', function (message) {
                 });
                 message.channel.send(embeddedMessage);
                 break;
-            // !armor [type] [itemName]    ex. !armor set replicant
+            // !armor [itemType:optional] [itemWeapon:defaults to 'sword'] [itemName]    ex. !armor set hammer replicant
             case 'armor':
-                type = args[0];
-                itemName = args.slice(1).join(' ');
+                weaponTypes = ['instrument', 'tome', 'orb', 'staff', 'sword', 'hammer', 'ranged', 'spear'];
+                itemType = args[0];
+                // has [itemType]
+                if (['set', 'head', 'hands', 'feet', 'body'].includes(itemType.toLowerCase())){
+                    itemWeapon = args[1];
+                    // !armor [itemType] [itemWeapon] [itemName]    ex. !armor set hammer replicant
+                    if (weaponTypes.includes(itemWeapon.toLowerCase()))
+                        itemName = args.slice(2).join(' ');
+                    // no [itemWeapon] - !armor [itemType] [itemName]    ex. !armor set replicant
+                    else{
+                        itemWeapon = 'Blade';
+                        itemName = args.slice(1).join(' ');
+                    }
 
-                if (type == 'set'){
+                }
+                // no [itemType]
+                else{
+                    itemWeapon = args[0];
+                    // !armor [itemWeapon] [itemName]    ex. !armor hammer replicant
+                    if (weaponTypes.includes(itemWeapon.toLowerCase()))
+                        itemName = args.slice(1).join(' ');
+                    // no [itemWeapon] - !armor [itemName]    ex. !armor replicant
+                    else{
+                        itemWeapon = 'Blade';
+                        itemName = args.join(' ');
+                    }
+                }
+
+                if (itemType == 'set'){
                     // If item is not in our current database, check if it is an alias. If not, return error
                     if (!(itemName in armorsetsDB)){
-                        itemSet = armoraliases[itemName.replace(' ', '').toLowerCase()];
+                        itemSet = armorsetsDB[armoraliases[itemName]];
                         if (itemSet == null){
                             message.channel.send(`"${itemName}" was not found in the database.`);
                             return;
@@ -100,13 +140,41 @@ client.on('message', function (message) {
                     }
                     else
                         itemSet = armorsetsDB[itemName];
-                    // Build Message to send
-
+                    // Build Item Stats (full set of items)
+                    itemStats = ''
+                    for (item in itemSet){
+                        if ('unique' in itemSet)
+                            itemDetails = armorDB[itemSet[item]];
+                        else
+                            itemDetails = armorDB[getFullName(itemSet, item, itemWeapon)];
+                        itemStats += `[${itemSet[item]}](${itemDetails['icon']})`;
+                        itemStats += formatscripts.formatArmorStats(itemDetails);
+                    }
+                    itemDetails = armorDB[getFullName(itemSet, 'Body', 'Blade')];
+                    itemStats += `\n**Total Set Stat: ${itemDetails['set_total'].replace('...', '')}**`;
+                    armorUrl = `https://sinoalice.game-db.tw/armor/${itemDetails['altName']}`;
+                    console.log(armorUrl);
+                    embeddedMessage = new Discord.MessageEmbed({
+                        title: `${armoraliases[itemName]} Set`,
+                        url: `https://sinoalice.game-db.tw/armor/${itemDetails['altName']}`.replace(' ', '%20'),
+                        thumbnail: {url: itemDetails['icon']},
+                        fields: [
+                            {
+                                name: 'Stats',
+                                value: itemStats
+                            },
+                            {
+                                name: 'Skills',
+                                value: formatscripts.formatSkills(itemDetails, 'armor')
+                            }
+                        ]
+                    });
+                    message.channel.send(embeddedMessage);
                 }
-                else if (['head', 'hands', 'feet', 'body'].includes(type.toLowerCase())){
+                else if (['head', 'hands', 'feet', 'body'].includes(itemType.toLowerCase())){
                     // If item is not in our current database, check if it is an alias. If not, return error
                     if (!(itemName in armorDB)){
-                        itemName = armoraliases[itemName.replace(' ', '').toLowerCase()];
+                        itemName = armoraliases[itemName];
                         if (itemName == null){
                             message.channel.send(`"${args.join(' ')}" was not found in the database.`);
                             return;
@@ -116,26 +184,27 @@ client.on('message', function (message) {
                     // Build message to send
                     embeddedMessage = new Discord.MessageEmbed({
                     title: `${item} (${itemDetails['altName']})`,
-                    url: `https://sinoalice.game-db.tw/armor/${itemDetails['altName']}`,
+                    url: decodeURI(`https://sinoalice.game-db.tw/armor/${itemDetails['altName']}`),
                     thumbnail: {url: itemDetails['icon']},
                     fields: [
                         {
                             name: 'Stats',
-                            value: formatscripts.formatWeaponStats(itemDetails)
+                            value: formatscripts.formatArmorStats(itemDetails)
                         },
                         {
                             name: 'Skills',
-                            value: formatscripts.formatSkills(itemDetails, 'weapon')
+                            value: formatscripts.formatSkills(itemDetails, 'armor')
                         }
                     ]
-                });
-                message.channel.send(embeddedMessage);
+                    });
+                    message.channel.send(embeddedMessage);
                     break;
                 }
                 else {
-                    message.channel.send(`"${type}" is an invalid option`);
+                    message.channel.send(`"${itemType}" is an invalid option`);
                     return;
                 }
+                break;
             case 'nightmare':
             case 'nightmares':
                 item = args.join('').toLowerCase();

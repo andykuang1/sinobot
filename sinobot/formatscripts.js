@@ -30,9 +30,10 @@ module.exports.formatWeaponStats = function(itemDetails){
 };
 
 module.exports.formatArmorStats = function(itemDetails){
-    formattedString = `\nPDEF: ${formatSpacing(itemDetails['pdef'])}\tMDEF: ${formatSpacing(itemDetails['mdef'])}\
-        \n\nTotal DEF: ${formatSpacing(itemDetails['total_def'])}`;
-}
+    formattedString = `\`\`\`\nPDEF: ${formatSpacing(itemDetails['pdef'])}\tMDEF: ${formatSpacing(itemDetails['mdef'])}\
+        \n\nTotal DEF: ${formatSpacing(itemDetails['total_stat']).replace(whitespace_regex, '')}\`\`\``;
+    return formattedString;
+};
 
 module.exports.formatSkills = function(itemDetails, type){
     if (type == 'weapon'){
@@ -45,4 +46,8 @@ module.exports.formatSkills = function(itemDetails, type){
             \n\n**${itemDetails['set_effect'].split('\n')[0]}**: ${itemDetails['set_effect'].split('\n')[1]}`
     }
     return formattedString;
+};
+
+module.exports.capitalize = function(item){
+    return item[0].toUpperCase() + item.slice(1);
 };
