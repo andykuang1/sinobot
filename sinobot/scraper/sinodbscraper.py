@@ -203,12 +203,13 @@ def main(argv):
 		itemDetails = get_item_details(driver, i, itemType)
 		itemsDict[itemName] = itemDetails
 		# Add common item aliases
-		itemNameAlias = itemName.replace(' ', '').lower()
-		if itemNameAlias not in aliases:
-			aliases.update({itemNameAlias: itemName})
-		secondAlias = itemNameAlias.replace('\'', '')
-		if secondAlias not in aliases:
-			aliases.update({secondAlias: itemName})
+		## Nameless Youth's -> [NamelessYouth's, nameless youth's, Nameless Youths, namelessyouth's, NamelessYouths, nameless youths, namelessyouths]
+		differentAliases = [itemName.replace(' ', ''), itemName.lower(), itemName.replace('\'', ''), 
+		itemName.replace(' ', '').lower(), itemName.replace(' ', '').replace('\'', ''), itemName.lower().replace('\'', ''),
+		itemName.replace(' ', '').lower().replace('\'', '')]
+		for alias in differentAliases:
+			if alias not in aliases:
+				aliases.update({alias: itemName})
 	driver.close()
 	
 	# Dump data to file
