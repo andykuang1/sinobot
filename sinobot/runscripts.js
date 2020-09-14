@@ -37,7 +37,7 @@ function addArmorAliases(){
 
 addArmorAliases();
 
-module.exports.runWeaponsScript = function(message){
+function runWeaponsScript(message){
     if (updatingWeapons == true){
         message.channel.send("Weapons database is currently being updated.");
         return;
@@ -51,13 +51,13 @@ module.exports.runWeaponsScript = function(message){
     });
 };
 
-module.exports.runArmorScript = function(message){
+function runArmorScript(message){
 	if (updatingArmor == true){
         message.channel.send("Armor database is currently being updated.");
         return;
 	}
     updatingArmor = true;
-    message.channel.send("Beginning armor database update. This can take up to 5 minutes. Please feel free to continue using the old database in the meantime. Updated database will not be used until restart.");
+    message.channel.send("Beginning armor database update. This can take up to 5 minutes. Please feel free to continue using the old database in the meantime. Updated database will not be available until restart.");
     child = runScraperScript('armor');
     child.on('exit', function() {
         message.channel.send("Armor database update is complete."); 
@@ -65,16 +65,29 @@ module.exports.runArmorScript = function(message){
     });
 };
 
-module.exports.runNightmaresScript = function(message){
+function runNightmaresScript(message){
 	if (updatingNightmares == true){
-        message.channel.send("Beginning nightmare database update. This can take up to 5 minutes. Please feel free to continue using the old database in the meantime. Updated database will not be used until restart.");
+        message.channel.send("Beginning nightmare database update. This can take up to 5 minutes. Please feel free to continue using the old database in the meantime. Updated database will not be available until restart.");
         return;
 	}
     updatingNightmares = true;
-    message.channel.send("Beginning nightmares database update. This can take up to 5 minutes. Please feel free to continue using the old database in the meantime.");
+    message.channel.send("Beginning nightmares database update. This can take up to 5 minutes. Please feel free to continue using the old database in the meantime. Updated database will not be available until restart.");
     child = runScraperScript('nightmares');
     child.on('exit', function() {
         message.channel.send("Nightmares database update is complete."); 
         updatingNightmares = false;
     });
+};
+
+module.exports.runUpdateScript = function(message, scriptType){
+    if (scriptType == 'weapon' || scriptType == 'weapons')
+        runWeaponsScript(message);
+    else if (scriptType == 'armor')
+        runArmorScript(message);
+    else if (scriptType == 'nightmare' || args == 'nightmares')
+        runNightmaresScript(message);
+    else{
+        console.log('There was an unrecognized argument');
+        message.channel.send(`"${args}" not recognized`);
+    }
 };

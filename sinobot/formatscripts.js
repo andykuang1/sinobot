@@ -1,3 +1,5 @@
+const armorDB = require('./database/armorDB.json');
+
 whitespace_regex = /\s+/g;
 
 //takes and returns a string
@@ -48,6 +50,22 @@ module.exports.formatSkills = function(itemDetails, type){
     return formattedString;
 };
 
-module.exports.capitalize = function(item){
+function capitalize(item){
     return item[0].toUpperCase() + item.slice(1);
+};
+
+// returns the full name of the armor item    ex. 2B's Goggles [Blade] / Nameless Youth's Hairband (Blade)
+module.exports.getFullName = function(itemSet, item, itemWeapon){
+    fullItemNameParens = `${itemSet[item]} (${capitalize(itemWeapon)})`;
+    fullItemNameBrackets = `${itemSet[item]} [${capitalize(itemWeapon)}]`;
+    if (fullItemNameParens in armorDB)
+        fullItemName = fullItemNameParens;
+    else if (fullItemNameBrackets in armorDB)
+        fullItemName = fullItemNameBrackets;
+    else{
+        console.log('The item was not found in the database');
+        message.channel.send('The item was not found in the database');
+        exit();
+    }
+    return fullItemName;
 };
