@@ -1,5 +1,3 @@
-const armorDB = require('./database/armorDB.json');
-
 whitespace_regex = /\s+/g;
 
 //takes and returns a string
@@ -50,22 +48,38 @@ module.exports.formatSkills = function(itemDetails, type){
     return formattedString;
 };
 
-function capitalize(item){
-    return item[0].toUpperCase() + item.slice(1);
-};
+// takes in an arg such as "set hammer replicant" and returns [itemName, itemWeapon] ex. ['replicant', 'Heavy']
+module.exports.parseArmorArgument = function(args){
+    weaponTypes = ['instrument', 'tome', 'orb', 'staff', 'sword', 'hammer', 'ranged', 'spear'];
+    weaponMatching = {'instrument': 'Instrument', 'tome': 'Tome', 'orb': 'Artifact', 'staff': 'Staff', 
+    'sword': 'Blade', 'hammer': 'Heavy', 'ranged': 'Projectile', 'spear': 'Polearm'};
+    if (['set', 'head', 'hands', 'feet', 'body'].includes(args[0].toLowerCase())){
+        itemWeapon = args[1];
+        // !armor [itemType] [itemWeapon] [itemName]    ex. !armor set hammer replicant
+        if (weaponTypes.includes(itemWeapon.toLowerCase())){
+            itemName = args.slice(2).join(' ');
+            itemWeapon = weaponMatching[itemWeapon];
+        }
+        // no [itemWeapon] - !armor [itemType] [itemName]    ex. !armor set replicant
+        else{
+            itemName = args.slice(1).join(' ');
+            itemWeapon = 'Blade';
+        }
 
-// returns the full name of the armor item    ex. 2B's Goggles [Blade] / Nameless Youth's Hairband (Blade)
-module.exports.getFullName = function(itemSet, item, itemWeapon){
-    fullItemNameParens = `${itemSet[item]} (${capitalize(itemWeapon)})`;
-    fullItemNameBrackets = `${itemSet[item]} [${capitalize(itemWeapon)}]`;
-    if (fullItemNameParens in armorDB)
-        fullItemName = fullItemNameParens;
-    else if (fullItemNameBrackets in armorDB)
-        fullItemName = fullItemNameBrackets;
-    else{
-        console.log('The item was not found in the database');
-        message.channel.send('The item was not found in the database');
-        exit();
     }
-    return fullItemName;
+    // no [itemType]
+    else{
+        itemWeapon = args[0];
+        // !armor [itemWeapon] [itemName]    ex. !armor hammer replicant
+        if (weaponTypes.includes(itemWeapon.toLowerCase())){
+            itemName = args.slice(1).join(' ');
+            itemWeapon = weaponMatching[itemWeapon];
+        }
+        // no [itemWeapon] - !armor [itemName]    ex. !armor replicant
+        else{
+            itemName = args.join(' ');
+            itemWeapon = 'Blade';
+        }
+    }
+    return [itemName, itemWeapon];
 };

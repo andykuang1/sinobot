@@ -1,7 +1,7 @@
 var Discord = require('discord.js');
 const {spawn} = require('child_process');
 const path = require('path');
-const armorsets = require('./database/armorsetsDB.json');
+const armorsets = require('../database/armorsetsDB.json');
 const fs = require('fs');
 
 var updatingWeapons = false;
@@ -9,7 +9,7 @@ var updatingArmor = false;
 var updatingNightmares = false;
 
 function runScraperScript(type){
-  return spawn('python', ["-u", path.join(__dirname, '/scraper/sinodbscraper.py'), "-t", type]);
+  return spawn('python', ["-u", path.join(__dirname, '../scraper/sinodbscraper.py'), "-t", type]);
 };
 
 function readFileCallback(err, data){
@@ -27,12 +27,12 @@ function readFileCallback(err, data){
             })
         }
         json = JSON.stringify(aliasesFileData);
-        fs.writeFile('./database/armoraliases.json', json, 'utf8', function writeCallback(err){if (err) throw err;});
+        fs.writeFile(path.join(__dirname, '../database/armoraliases.json'), json, 'utf8', function writeCallback(err){if (err) throw err;});
     }
 }
 
 function addArmorAliases(){
-    fs.readFile('./database/armoraliases.json', 'utf8', readFileCallback);
+    fs.readFile(path.join(__dirname, '../database/armoraliases.json'), 'utf8', readFileCallback);
 }
 
 addArmorAliases();
