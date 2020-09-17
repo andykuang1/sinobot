@@ -52,12 +52,13 @@ client.on('message', function (message) {
                 console.log(message.content);
                 itemName = formatscripts.parseArmorArgument(args);
                 itemType = args[0];
+                baseName = itemName[0];
+                itemWeapon = itemName[1];
+                itemSet = dbscripts.getArmorSet(baseName);
                 if (itemType.toLowerCase() == 'set'){
-                    setName = itemName[0];
                     // If item is not in our current database, check if it is an alias. If not, return error
-                    itemSet = dbscripts.getArmorSet(setName);
                     if (itemSet == -1){
-                        message.channel.send(`"${setName}" was not found in the database.`);
+                        message.channel.send(`"${baseName}" was not found in the database.`);
                         break;
                     }
                     // Build Item Stats (full set of items)
@@ -65,36 +66,32 @@ client.on('message', function (message) {
                     message.channel.send(embedMessage);
                 }
                 else if (['head', 'hands', 'feet', 'body'].includes(itemType.toLowerCase())){
-                    // // If item is not in our current database, check if it is an alias. If not, return error
-                    // itemFullName = dbscripts.getFullName(itemName[0], itemName[1])
-                    // if (itemFullName = -1){
-                    //     message.channel.send(`${itemName[0]} was not found in the database`);
-                    //     break;
-                    // }
-                    // item = dbscripts.getItem(itemFullName, 'armor');
-                    // if (item == -1){
-                    //     message.channel.send(`${itemName[0]} was not found in the database.`);
-                    //     break;
-                    // }
-                    // // Build message to send
-                    // embedMessage = createembedscripts.createEmbedMessageItem(item, 'armor');
-                    // message.channel.send(embedMessage);
-                    // break;
+                    // If item is not in our current database, check if it is an alias. If not, return error
+                    if (itemSet == -1){
+                        message.channel.send(`"${baseName}" was not found in the database.`);
+                        break;
+                    }
+                    individualItemName = itemSet[formatscripts.capitalize(itemType)];
+                    itemFullName = dbscripts.getFullName(individualItemName, itemWeapon);
+                    item = dbscripts.getItem(itemFullName, 'armor');
+                    // Build Item Stats (full set of items)
+                    embedMessage = createembedscripts.createEmbedMessageItem(item, 'armor');
+                    message.channel.send(embedMessage);
+
                 }
                 else {
-                    itemFullName = dbscripts.getFullName(itemName[0], itemName[1]);
-                    if (itemFullName == -1){
-                        message.channel.send(`${itemName[0]} was not found in the database.`);
-                        break;
-                    }
                     // If item is not in our current database, check if it is an alias. If not, return error
-                    item = dbscripts.getItem(itemFullName, 'armor');
-                    if (item == -1){
-                        message.channel.send(`${itemName} was not found in the database.`);
-                        break;
+                    if (itemSet == -1){
+                        item = dbscripts.getItem(baseName, 'armor');
+                        if (item == -1){
+                            message.channel.send(`${baseName} was not found in the database.`);
+                            break;
+                        }
+                        embedMessage = createembedscripts.createEmbedMessageItem(item, 'armor');
+                        message.channel.send(embedMessage);
                     }
                     // Build message to send
-                    embedMessage = createembedscripts.createEmbedMessageItem(item, 'armor');
+                    embedMessage = createembedscripts.createEmbedMessageArmorSet(itemSet, itemName);
                     message.channel.send(embedMessage);
                     break;
                 }

@@ -38,9 +38,9 @@ module.exports.createEmbedMessageItem = function(item, type){
     return embedMessage;
 };
 
-module.exports.createEmbedMessageArmorSet = function(itemSet, itemName){
-    baseName = itemName[0];
-    itemWeapon = itemName[1];
+module.exports.createEmbedMessageArmorSet = function(itemSet, setName){
+    baseName = setName[0];
+    itemWeapon = setName[1];
     itemStats = ''
     for (item in itemSet){
         if ('unique' in itemSet)
@@ -50,7 +50,7 @@ module.exports.createEmbedMessageArmorSet = function(itemSet, itemName){
         itemStats += `[${itemSet[item]}](${itemDetails['icon']})`;
         itemStats += formatscripts.formatArmorStats(itemDetails);
     }
-    itemDetails = armorDB[dbscripts.getFullName(itemSet, 'Body', 'Blade')];
+    itemDetails = armorDB[dbscripts.getFullName(itemSet['Body'], 'Blade')];
     itemStats += `\n**Total Set Stat: ${itemDetails['set_total'].replace('...', '')}**`;
     armorUrl = `https://sinoalice.game-db.tw/armor/${itemDetails['altName']}`;
     embedMessage = new Discord.MessageEmbed({

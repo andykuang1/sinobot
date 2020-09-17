@@ -31,7 +31,6 @@ module.exports.getItem = function(item, type){
         return [item, weaponsDB[item]];
     }
     else if (type == 'armor'){
-        console.log(item);
         if (!(item in armorDB)){
             item = armoraliases[item];
             if (item == null)
@@ -39,6 +38,8 @@ module.exports.getItem = function(item, type){
         }
         return [item, armorDB[item]];
     }
+    else
+        return -1;
 };
 
 module.exports.getArmorSet = function(baseName){

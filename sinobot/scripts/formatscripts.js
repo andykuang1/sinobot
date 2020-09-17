@@ -64,7 +64,7 @@ module.exports.parseArmorArgument = function(args){
     if (['set', 'head', 'hands', 'feet', 'body'].includes(args[0].toLowerCase())){
         itemWeapon = args[1];
         // !armor [itemType] [itemWeapon] [itemName]    ex. !armor set hammer replicant
-        if (weapontypesaliases.includes(itemWeapon.toLowerCase())){
+        if (itemWeapon.toLowerCase() in weapontypesaliases){
             itemWeapon = weapontypesaliases[itemWeapon];
             itemName = args.slice(2).join(' ');
         }
@@ -73,7 +73,6 @@ module.exports.parseArmorArgument = function(args){
             itemWeapon = 'Blade';
             itemName = args.slice(1).join(' ');
         }
-
     }
     // no [itemType]
     else{
