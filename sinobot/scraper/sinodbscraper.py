@@ -79,12 +79,12 @@ nightmare_element_classes = {
 weaponTypes = {
 	'https://sinoalice.game-db.tw/images/weapon_icon_001.png': 'Instrument',
 	'https://sinoalice.game-db.tw/images/weapon_icon_002.png': 'Tome',
-	'https://sinoalice.game-db.tw/images/weapon_icon_003.png': 'Orb',
+	'https://sinoalice.game-db.tw/images/weapon_icon_003.png': 'Artifact',
 	'https://sinoalice.game-db.tw/images/weapon_icon_004.png': 'Staff',
-	'https://sinoalice.game-db.tw/images/weapon_icon_005.png': 'Sword',
-	'https://sinoalice.game-db.tw/images/weapon_icon_006.png': 'Hammer',
-	'https://sinoalice.game-db.tw/images/weapon_icon_007.png': 'Ranged',
-	'https://sinoalice.game-db.tw/images/weapon_icon_008.png': 'Spear'
+	'https://sinoalice.game-db.tw/images/weapon_icon_005.png': 'Blade',
+	'https://sinoalice.game-db.tw/images/weapon_icon_006.png': 'Heavy',
+	'https://sinoalice.game-db.tw/images/weapon_icon_007.png': 'Projectile',
+	'https://sinoalice.game-db.tw/images/weapon_icon_008.png': 'Polearm'
 }
 
 elements = {

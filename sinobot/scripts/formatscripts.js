@@ -1,9 +1,20 @@
+const weapontypesaliases = require('../database/weapontypesaliases.json');
+
 whitespace_regex = /\s+/g;
+parenbrackets_regex = /[\[\]\(\)]/g;
 
 //takes and returns a string
 function formatSpacing(number){
     return (number < 1000) ? ' ' + number : number;
 }
+
+module.exports.capitalize = function(item){
+    stringToBuild = [];
+    item.split(' ').forEach(word =>{
+        stringToBuild.push(word[0].toUpperCase() + word.slice(1));
+    })
+    return stringToBuild.join(' ');
+};
 
 module.exports.formatWeaponStats = function(itemDetails){
     pdps = ['Hammer', 'Sword', 'Instrument', 'Tome'];
@@ -50,20 +61,17 @@ module.exports.formatSkills = function(itemDetails, type){
 
 // takes in an arg such as "set hammer replicant" and returns [itemName, itemWeapon] ex. ['replicant', 'Heavy']
 module.exports.parseArmorArgument = function(args){
-    weaponTypes = ['instrument', 'tome', 'orb', 'staff', 'sword', 'hammer', 'ranged', 'spear'];
-    weaponMatching = {'instrument': 'Instrument', 'tome': 'Tome', 'orb': 'Artifact', 'staff': 'Staff', 
-    'sword': 'Blade', 'hammer': 'Heavy', 'ranged': 'Projectile', 'spear': 'Polearm'};
     if (['set', 'head', 'hands', 'feet', 'body'].includes(args[0].toLowerCase())){
         itemWeapon = args[1];
         // !armor [itemType] [itemWeapon] [itemName]    ex. !armor set hammer replicant
-        if (weaponTypes.includes(itemWeapon.toLowerCase())){
+        if (weapontypesaliases.includes(itemWeapon.toLowerCase())){
+            itemWeapon = weapontypesaliases[itemWeapon];
             itemName = args.slice(2).join(' ');
-            itemWeapon = weaponMatching[itemWeapon];
         }
         // no [itemWeapon] - !armor [itemType] [itemName]    ex. !armor set replicant
         else{
-            itemName = args.slice(1).join(' ');
             itemWeapon = 'Blade';
+            itemName = args.slice(1).join(' ');
         }
 
     }
@@ -71,14 +79,21 @@ module.exports.parseArmorArgument = function(args){
     else{
         itemWeapon = args[0];
         // !armor [itemWeapon] [itemName]    ex. !armor hammer replicant
-        if (weaponTypes.includes(itemWeapon.toLowerCase())){
+        if (itemWeapon.toLowerCase() in weapontypesaliases){
             itemName = args.slice(1).join(' ');
-            itemWeapon = weaponMatching[itemWeapon];
+            itemWeapon = weapontypesaliases[itemWeapon];
         }
         // no [itemWeapon] - !armor [itemName]    ex. !armor replicant
         else{
-            itemName = args.join(' ');
-            itemWeapon = 'Blade';
+            potentialWeapon = args.slice(args.length-1).join(' ').replace(parenbrackets_regex, '').toLowerCase();
+            if (potentialWeapon in weapontypesaliases){
+                itemWeapon = weapontypesaliases[potentialWeapon];
+                itemName = args.slice(0, args.length-1).join(' ');
+            }
+            else{
+                itemWeapon = 'Blade';
+                itemName = args.join(' ');
+            }
         }
     }
     return [itemName, itemWeapon];

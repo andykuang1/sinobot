@@ -6,24 +6,35 @@ const armorDB = require('../database/armorDB.json');
 
 const Discord = require('discord.js');
 
-module.exports.createEmbedMessageItem = function(itemDetails, type){
+module.exports.createEmbedMessageItem = function(item, type){
+    itemName = item[0];
+    itemDetails = item[1];
+    itemTitle = `${itemName} \n${itemDetails['altName']}`;
+    itemUrl = `https://sinoalice.game-db.tw/weapons/${itemDetails['altName']}`;
+    itemThumbnail = {url: itemDetails['icon']};
     if (type == 'weapon'){
-        embedMessage = new Discord.MessageEmbed({
-        title: `${item} (${itemDetails['altName']})`,
-        url: `https://sinoalice.game-db.tw/weapons/${itemDetails['altName']}`,
-        thumbnail: {url: itemDetails['icon']},
-        fields: [
-            {
-                name: 'Stats',
-                value: formatscripts.formatWeaponStats(itemDetails)
-            },
-            {
-                name: 'Skills',
-                value: formatscripts.formatSkills(itemDetails, 'weapon')
-            }
-        ]
-        });
+        statsValue = formatscripts.formatWeaponStats(itemDetails);
+        skillsValue = formatscripts.formatSkills(itemDetails, 'weapon');
     }
+    else if (type == 'armor'){
+        statsValue = formatscripts.formatArmorStats(itemDetails);
+        skillsValue = formatscripts.formatSkills(itemDetails, 'armor');
+    }
+    embedMessage = new Discord.MessageEmbed({
+    title: itemTitle,
+    url: itemUrl,
+    thumbnail: itemThumbnail,
+    fields: [
+        {
+            name: 'Stats',
+            value: statsValue
+        },
+        {
+            name: 'Skills',
+            value: skillsValue
+        }
+    ]
+    });
     return embedMessage;
 };
 
@@ -35,7 +46,7 @@ module.exports.createEmbedMessageArmorSet = function(itemSet, itemName){
         if ('unique' in itemSet)
             itemDetails = armorDB[itemSet[item]];
         else
-            itemDetails = armorDB[dbscripts.getFullName(itemSet, item, itemWeapon)];
+            itemDetails = armorDB[dbscripts.getFullName(itemSet[item], itemWeapon)];
         itemStats += `[${itemSet[item]}](${itemDetails['icon']})`;
         itemStats += formatscripts.formatArmorStats(itemDetails);
     }
