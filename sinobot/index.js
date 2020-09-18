@@ -83,13 +83,15 @@ client.on('message', function (message) {
                 else {
                     // If item is not in our current database, check if it is an alias. If not, return error
                     if (itemSet == -1){
-                        item = dbscripts.getItem(baseName, 'armor');
+                        itemFullName = dbscripts.getFullName(baseName, itemWeapon);
+                        item = dbscripts.getItem(itemFullName, 'armor');
                         if (item == -1){
-                            message.channel.send(`${baseName} was not found in the database.`);
+                            message.channel.send(`${args.join(' ')} was not found in the database.`);
                             break;
                         }
                         embedMessage = createembedscripts.createEmbedMessageItem(item, 'armor');
                         message.channel.send(embedMessage);
+                        break;
                     }
                     // Build message to send
                     embedMessage = createembedscripts.createEmbedMessageArmorSet(itemSet, itemName);
@@ -101,7 +103,7 @@ client.on('message', function (message) {
             case 'nightmares':
                 console.log(message.content);
                 // If item is not in our current database, check if it is an alias. If not, return error
-                item = dbscripts.getItem(args, 'nightmare');
+                item = dbscripts.getItem(args.join(' '), 'nightmare');
                 if (item == -1){
                     message.channel.send(`${args.join(' ')} was not found in the database.`);
                     break;

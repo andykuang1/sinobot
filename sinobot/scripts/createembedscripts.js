@@ -3,6 +3,7 @@ const formatscripts = require('./formatscripts.js');
 
 const armoraliases = require('../database/armoraliases.json');
 const armorDB = require('../database/armorDB.json');
+const setbonuses = require('../database/setbonuses.json');
 
 const Discord = require('discord.js');
 
@@ -70,7 +71,7 @@ module.exports.createEmbedMessageArmorSet = function(itemSet, setName){
     armorUrl = `https://sinoalice.game-db.tw/armor/${itemDetails['altName']}`;
     embedMessage = new Discord.MessageEmbed({
         title: `${armoraliases[baseName]} Set`,
-        url: `https://sinoalice.game-db.tw/armor/${itemDetails['altName']}`.replace(' ', '%20'),
+        url: `https://sinoalice.game-db.tw/setbonus/${setbonuses[armoraliases[baseName]]}`.replace(' ', '%20'),
         thumbnail: {url: itemDetails['icon']},
         fields: [
             {

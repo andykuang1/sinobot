@@ -12,7 +12,6 @@ const nightmaresaliases = require('../database/nightmaresaliases.json');
 module.exports.getFullName = function(item, itemWeapon){
     fullItemNameParens = formatscripts.capitalize(`${item} (${itemWeapon})`);
     fullItemNameBrackets = formatscripts.capitalize(`${item} [${itemWeapon}]`);
-    return fullItemNameParens;
     if (fullItemNameParens in armorDB){
         fullItemName = fullItemNameParens;
     }
@@ -23,10 +22,11 @@ module.exports.getFullName = function(item, itemWeapon){
     return fullItemName;
 };
 
+// returns [itemName, itemDetails]
 module.exports.getItem = function(item, type){
     if (type == 'weapon'){
         if (!(item in weaponsDB)){
-            item = weaponsaliases[item];
+            item = weaponsaliases[item.toLowerCase()];
             if (item == null)
                 return -1;
         }
@@ -34,7 +34,7 @@ module.exports.getItem = function(item, type){
     }
     else if (type == 'armor'){
         if (!(item in armorDB)){
-            item = armoraliases[item];
+            item = armoraliases[item.toLowerCase()];
             if (item == null)
                 return -1;
         }
@@ -42,7 +42,7 @@ module.exports.getItem = function(item, type){
     }
     else if (type == 'nightmare'){
         if (!(item in nightmaresDB)){
-            item = nightmaresaliases[item];
+            item = nightmaresaliases[item.toLowerCase()];
             if (item == null)
                 return -1;
         }
