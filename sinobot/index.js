@@ -27,6 +27,7 @@ client.on('message', function (message) {
         switch(cmd) {
             // !commands
             case 'commands':
+            case 'help':
                 break;
             // !update [type]    ex. !update weapons
             case 'update':
@@ -98,19 +99,16 @@ client.on('message', function (message) {
                 break;
             case 'nightmare':
             case 'nightmares':
-                // item = args.join('').toLowerCase();
-                // // If item is not in our current database, check if it is an alias. If not, return error
-                // if (!(item in nightmaresDB)){
-                //     item = nightmarealiases[item];
-                //     if (item == null){
-                //         message.channel.send(`"${args.join(' ')}" was not found in the database.`);
-                //         return;
-                //     }
-                // }
-                // itemDetails = nightmaresDB[item]
-                // // Build message to send
-                // message.channel.send(`${item} (${itemDetails['altName']}) `);
-                // break;
+                console.log(message.content);
+                // If item is not in our current database, check if it is an alias. If not, return error
+                item = dbscripts.getItem(args, 'nightmare');
+                if (item == -1){
+                    message.channel.send(`${args.join(' ')} was not found in the database.`);
+                    break;
+                }
+                // Build message to send
+                embedMessage = createembedscripts.createEmbedMessageItem(item, 'nightmare');
+                message.channel.send(embedMessage);
          }
      }
 });

@@ -1,10 +1,12 @@
 const formatscripts = require('./formatscripts.js')
 
-const armorDB = require('../database/armorDB.json');
 const weaponsDB = require('../database/weaponsDB.json');
+const armorDB = require('../database/armorDB.json');
+const armorsetsDB = require('../database/armorsetsDB.json');
+const nightmaresDB = require('../database/nightmaresDB.json');
 const weaponsaliases = require('../database/weaponsaliases.json');
 const armoraliases = require('../database/armoraliases.json');
-const armorsetsDB = require('../database/armorsetsDB.json');
+const nightmaresaliases = require('../database/nightmaresaliases.json');
 
 // returns the full name of the armor item    ex. 2B's Goggles [Blade] / Nameless Youth's Hairband (Blade)
 module.exports.getFullName = function(item, itemWeapon){
@@ -37,6 +39,14 @@ module.exports.getItem = function(item, type){
                 return -1;
         }
         return [item, armorDB[item]];
+    }
+    else if (type == 'nightmare'){
+        if (!(item in nightmaresDB)){
+            item = nightmaresaliases[item];
+            if (item == null)
+                return -1;
+        }
+        return [item, nightmaresDB[item]];
     }
     else
         return -1;

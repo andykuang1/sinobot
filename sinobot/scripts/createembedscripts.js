@@ -10,15 +10,25 @@ module.exports.createEmbedMessageItem = function(item, type){
     itemName = item[0];
     itemDetails = item[1];
     itemTitle = `${itemName} \n${itemDetails['altName']}`;
-    itemUrl = `https://sinoalice.game-db.tw/weapons/${itemDetails['altName']}`;
     itemThumbnail = {url: itemDetails['icon']};
     if (type == 'weapon'){
+        itemUrl = `https://sinoalice.game-db.tw/weapons/${itemDetails['altName']}`;
         statsValue = formatscripts.formatWeaponStats(itemDetails);
         skillsValue = formatscripts.formatSkills(itemDetails, 'weapon');
     }
     else if (type == 'armor'){
+        itemUrl = `https://sinoalice.game-db.tw/armor/${itemDetails['altName']}`;
         statsValue = formatscripts.formatArmorStats(itemDetails);
         skillsValue = formatscripts.formatSkills(itemDetails, 'armor');
+    }
+    else if (type == 'nightmare'){
+        itemUrl = `https://sinoalice.game-db.tw/nightmares/${itemDetails['altName']}`;
+        statsValue = formatscripts.formatNightmareStats(itemDetails);
+        skillsValue = formatscripts.formatSkills(itemDetails, 'nightmare');
+    }
+    else{
+        console.log('Unrecognized type in createEmbedMessageItem');
+        return -1;
     }
     embedMessage = new Discord.MessageEmbed({
     title: itemTitle,
@@ -43,14 +53,19 @@ module.exports.createEmbedMessageArmorSet = function(itemSet, setName){
     itemWeapon = setName[1];
     itemStats = ''
     for (item in itemSet){
-        if ('unique' in itemSet)
-            itemDetails = armorDB[itemSet[item]];
-        else
-            itemDetails = armorDB[dbscripts.getFullName(itemSet[item], itemWeapon)];
-        itemStats += `[${itemSet[item]}](${itemDetails['icon']})`;
-        itemStats += formatscripts.formatArmorStats(itemDetails);
+        if (item != 'unique'){
+            if ('unique' in itemSet)
+                itemDetails = armorDB[itemSet[item]];
+            else
+                itemDetails = armorDB[dbscripts.getFullName(itemSet[item], itemWeapon)];
+            itemStats += `[${itemSet[item]}](https://sinoalice.game-db.tw/armor/${itemDetails['altName']})`;
+            itemStats += formatscripts.formatArmorStats(itemDetails);
+        }
     }
-    itemDetails = armorDB[dbscripts.getFullName(itemSet['Body'], 'Blade')];
+    if ('unique' in itemSet)
+        itemDetails = armorDB[itemSet['Body']];
+    else
+        itemDetails = armorDB[dbscripts.getFullName(itemSet['Body'], 'Blade')];
     itemStats += `\n**Total Set Stat: ${itemDetails['set_total'].replace('...', '')}**`;
     armorUrl = `https://sinoalice.game-db.tw/armor/${itemDetails['altName']}`;
     embedMessage = new Discord.MessageEmbed({
