@@ -3,6 +3,7 @@ const formatscripts = require('./formatscripts.js');
 
 const armoraliases = require('../database/armoraliases.json');
 const armorDB = require('../database/armorDB.json');
+const setbonuses = require('../database/setbonuses.json');
 
 const Discord = require('discord.js');
 
@@ -12,17 +13,17 @@ module.exports.createEmbedMessageItem = function(item, type){
     itemTitle = `${itemName} \n${itemDetails['altName']}`;
     itemThumbnail = {url: itemDetails['icon']};
     if (type == 'weapon'){
-        itemUrl = `https://sinoalice.game-db.tw/weapons/${itemDetails['altName']}`;
+        itemUrl = `https://sinoalice.game-db.tw/weapons/${itemDetails['altName'].replace(' ', '%20')}`;
         statsValue = formatscripts.formatWeaponStats(itemDetails);
         skillsValue = formatscripts.formatSkills(itemDetails, 'weapon');
     }
     else if (type == 'armor'){
-        itemUrl = `https://sinoalice.game-db.tw/armor/${itemDetails['altName']}`;
+        itemUrl = `https://sinoalice.game-db.tw/armor/${itemDetails['altName'].replace(' ', '%20')}`;
         statsValue = formatscripts.formatArmorStats(itemDetails);
         skillsValue = formatscripts.formatSkills(itemDetails, 'armor');
     }
     else if (type == 'nightmare'){
-        itemUrl = `https://sinoalice.game-db.tw/nightmares/${itemDetails['altName']}`;
+        itemUrl = `https://sinoalice.game-db.tw/nightmares/${itemDetails['altName'].replace(' ', '%20')}`;
         statsValue = formatscripts.formatNightmareStats(itemDetails);
         skillsValue = formatscripts.formatSkills(itemDetails, 'nightmare');
     }
@@ -53,24 +54,33 @@ module.exports.createEmbedMessageArmorSet = function(itemSet, setName){
     itemWeapon = setName[1];
     itemStats = ''
     for (item in itemSet){
-        if (item != 'unique'){
-            if ('unique' in itemSet)
+        if ((item != 'unique') && (item != 'special')){
+            if ('unique' in itemSet){
                 itemDetails = armorDB[itemSet[item]];
-            else
+                individualPieceName = itemSet[item];
+            }
+            else{
                 itemDetails = armorDB[dbscripts.getFullName(itemSet[item], itemWeapon)];
-            itemStats += `[${itemSet[item]}](https://sinoalice.game-db.tw/armor/${itemDetails['altName']})`;
+                individualPieceName = dbscripts.getFullName(itemSet[item], itemWeapon);
+            }
+            if (!itemDetails)
+                console.log(`${baseName} is missing weapon type ${itemWeapon} in createEmbedMessageArmorSet`)
+            itemStats += `[${individualPieceName}](https://sinoalice.game-db.tw/armor/${itemDetails['altName'].replace(' ', '%20')})`;
             itemStats += formatscripts.formatArmorStats(itemDetails);
         }
     }
-    if ('unique' in itemSet)
+    if ('unique' in itemSet){
         itemDetails = armorDB[itemSet['Body']];
-    else
-        itemDetails = armorDB[dbscripts.getFullName(itemSet['Body'], 'Blade')];
+        embedTitle = `${armoraliases[baseName.toLowerCase()]} Set (Unique Pieces)`;
+    }
+    else{
+        itemDetails = armorDB[dbscripts.getFullName(itemSet['Body'], itemWeapon)];
+        embedTitle = `${armoraliases[baseName.toLowerCase()]} Set (${itemWeapon})`;
+    }
     itemStats += `\n**Total Set Stat: ${itemDetails['set_total'].replace('...', '')}**`;
-    armorUrl = `https://sinoalice.game-db.tw/armor/${itemDetails['altName']}`;
     embedMessage = new Discord.MessageEmbed({
-        title: `${armoraliases[baseName]} Set`,
-        url: `https://sinoalice.game-db.tw/armor/${itemDetails['altName']}`.replace(' ', '%20'),
+        title: embedTitle,
+        url: `https://sinoalice.game-db.tw/setbonus/${setbonuses[armoraliases[baseName.toLowerCase()]]}`.replace(' ', '%20'),
         thumbnail: {url: itemDetails['icon']},
         fields: [
             {

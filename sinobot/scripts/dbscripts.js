@@ -5,14 +5,14 @@ const armorDB = require('../database/armorDB.json');
 const armorsetsDB = require('../database/armorsetsDB.json');
 const nightmaresDB = require('../database/nightmaresDB.json');
 const weaponsaliases = require('../database/weaponsaliases.json');
+const weapontypesaliases = require('../database/weapontypesaliases.json');
 const armoraliases = require('../database/armoraliases.json');
 const nightmaresaliases = require('../database/nightmaresaliases.json');
 
 // returns the full name of the armor item    ex. 2B's Goggles [Blade] / Nameless Youth's Hairband (Blade)
 module.exports.getFullName = function(item, itemWeapon){
-    fullItemNameParens = formatscripts.capitalize(`${item} (${itemWeapon})`);
-    fullItemNameBrackets = formatscripts.capitalize(`${item} [${itemWeapon}]`);
-    return fullItemNameParens;
+    fullItemNameParens = armoraliases[`${item} (${weapontypesaliases[itemWeapon.toLowerCase()]})`.toLowerCase()];
+    fullItemNameBrackets = armoraliases[`${item} [${weapontypesaliases[itemWeapon.toLowerCase()]}]`.toLowerCase()];
     if (fullItemNameParens in armorDB){
         fullItemName = fullItemNameParens;
     }
@@ -23,10 +23,11 @@ module.exports.getFullName = function(item, itemWeapon){
     return fullItemName;
 };
 
+// returns [itemName, itemDetails]
 module.exports.getItem = function(item, type){
     if (type == 'weapon'){
         if (!(item in weaponsDB)){
-            item = weaponsaliases[item];
+            item = weaponsaliases[item.toLowerCase()];
             if (item == null)
                 return -1;
         }
@@ -34,7 +35,7 @@ module.exports.getItem = function(item, type){
     }
     else if (type == 'armor'){
         if (!(item in armorDB)){
-            item = armoraliases[item];
+            item = armoraliases[item.toLowerCase()];
             if (item == null)
                 return -1;
         }
@@ -42,7 +43,7 @@ module.exports.getItem = function(item, type){
     }
     else if (type == 'nightmare'){
         if (!(item in nightmaresDB)){
-            item = nightmaresaliases[item];
+            item = nightmaresaliases[item.toLowerCase()];
             if (item == null)
                 return -1;
         }
@@ -54,7 +55,7 @@ module.exports.getItem = function(item, type){
 
 module.exports.getArmorSet = function(baseName){
     if (!(baseName in armorsetsDB)){
-        itemSet = armorsetsDB[armoraliases[baseName]];
+        itemSet = armorsetsDB[armoraliases[baseName.toLowerCase()]];
         if (itemSet == null){
             return -1;
         }
