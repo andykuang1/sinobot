@@ -28,6 +28,9 @@ client.on('message', function (message) {
             // !commands
             case 'commands':
             case 'help':
+                console.log(message.content);
+                message.channel.send('Available Commands: \n**!help**, \n**!weapons**, \n**!armor**, \n**!nightmares**')
+
                 break;
             // !update [type]    ex. !update weapons
             case 'update':
@@ -37,9 +40,10 @@ client.on('message', function (message) {
             // !weapon [itemName]    ex. !weapon dpstaff
             case 'weapon':
             case 'weapons':
+            case 'w':
                 console.log(message.content);
                 // If item is not in our current database, check if it is an alias. If not, return error
-                item = dbscripts.getItem(args, 'weapon');
+                item = dbscripts.getItem(args.join(' '), 'weapon');
                 if (item == -1){
                     message.channel.send(`${args.join(' ')} was not found in the database.`);
                     break;
@@ -48,13 +52,18 @@ client.on('message', function (message) {
                 embedMessage = createembedscripts.createEmbedMessageItem(item, 'weapon');
                 message.channel.send(embedMessage);
                 break;
-            // !armor [itemType:optional] [itemWeapon:defaults to 'sword'] [itemName]    ex. !armor set hammer replicant
+            // !armor [itemType:optional] [itemWeapon:defaults to 'Blade'] [baseName]    ex. !armor set hammer replicant
             case 'armor':
+            case 'a':
                 console.log(message.content);
-                itemName = formatscripts.parseArmorArgument(args);
                 itemType = args[0];
-                baseName = itemName[0];
-                itemWeapon = itemName[1];
+                parsedArgument = formatscripts.parseArmorArgument(args);
+                baseName = parsedArgument[0];
+                if (baseName == -1){
+                    message.channel.send(`${parsedArgument[1]} Set does not contain the given weapon type.`)
+                    break;
+                }
+                armorWeaponType = parsedArgument[1];
                 itemSet = dbscripts.getArmorSet(baseName);
                 if (itemType.toLowerCase() == 'set'){
                     // If item is not in our current database, check if it is an alias. If not, return error
@@ -62,8 +71,8 @@ client.on('message', function (message) {
                         message.channel.send(`"${baseName}" was not found in the database.`);
                         break;
                     }
-                    // Build Item Stats (full set of items)
-                    embedMessage = createembedscripts.createEmbedMessageArmorSet(itemSet, itemName);
+                    // Send embed message
+                    embedMessage = createembedscripts.createEmbedMessageArmorSet(itemSet, parsedArgument);
                     message.channel.send(embedMessage);
                 }
                 else if (['head', 'hands', 'feet', 'body'].includes(itemType.toLowerCase())){
@@ -73,34 +82,40 @@ client.on('message', function (message) {
                         break;
                     }
                     individualItemName = itemSet[formatscripts.capitalize(itemType)];
-                    itemFullName = dbscripts.getFullName(individualItemName, itemWeapon);
+                    itemFullName = dbscripts.getFullName(individualItemName, armorWeaponType);
                     item = dbscripts.getItem(itemFullName, 'armor');
-                    // Build Item Stats (full set of items)
+                    // Send embed message
                     embedMessage = createembedscripts.createEmbedMessageItem(item, 'armor');
                     message.channel.send(embedMessage);
 
                 }
                 else {
-                    // If item is not in our current database, check if it is an alias. If not, return error
+                    // If itemset is not in our current database, check if it is an individual item. If not, return error
                     if (itemSet == -1){
-                        itemFullName = dbscripts.getFullName(baseName, itemWeapon);
-                        item = dbscripts.getItem(itemFullName, 'armor');
-                        if (item == -1){
-                            message.channel.send(`${args.join(' ')} was not found in the database.`);
+                        itemFullName = dbscripts.getFullName(baseName, armorWeaponType);
+                        if (itemFullName == -1){
+                            message.channel.send(`${baseName} was not found in the database.`);
                             break;
                         }
+                        item = dbscripts.getItem(itemFullName, 'armor');
+                        if (item == -1){
+                            message.channel.send(`${baseName} was not found in the database.`);
+                            break;
+                        }
+                        // Build Message To Send
                         embedMessage = createembedscripts.createEmbedMessageItem(item, 'armor');
                         message.channel.send(embedMessage);
                         break;
                     }
-                    // Build message to send
-                    embedMessage = createembedscripts.createEmbedMessageArmorSet(itemSet, itemName);
+                    // Build message to send for itemset
+                    embedMessage = createembedscripts.createEmbedMessageArmorSet(itemSet, parsedArgument);
                     message.channel.send(embedMessage);
                     break;
                 }
                 break;
             case 'nightmare':
             case 'nightmares':
+            case 'n':
                 console.log(message.content);
                 // If item is not in our current database, check if it is an alias. If not, return error
                 item = dbscripts.getItem(args.join(' '), 'nightmare');

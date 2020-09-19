@@ -5,13 +5,14 @@ const armorDB = require('../database/armorDB.json');
 const armorsetsDB = require('../database/armorsetsDB.json');
 const nightmaresDB = require('../database/nightmaresDB.json');
 const weaponsaliases = require('../database/weaponsaliases.json');
+const weapontypesaliases = require('../database/weapontypesaliases.json');
 const armoraliases = require('../database/armoraliases.json');
 const nightmaresaliases = require('../database/nightmaresaliases.json');
 
 // returns the full name of the armor item    ex. 2B's Goggles [Blade] / Nameless Youth's Hairband (Blade)
 module.exports.getFullName = function(item, itemWeapon){
-    fullItemNameParens = formatscripts.capitalize(`${item} (${itemWeapon})`);
-    fullItemNameBrackets = formatscripts.capitalize(`${item} [${itemWeapon}]`);
+    fullItemNameParens = armoraliases[`${item} (${weapontypesaliases[itemWeapon.toLowerCase()]})`.toLowerCase()];
+    fullItemNameBrackets = armoraliases[`${item} [${weapontypesaliases[itemWeapon.toLowerCase()]}]`.toLowerCase()];
     if (fullItemNameParens in armorDB){
         fullItemName = fullItemNameParens;
     }
@@ -54,7 +55,7 @@ module.exports.getItem = function(item, type){
 
 module.exports.getArmorSet = function(baseName){
     if (!(baseName in armorsetsDB)){
-        itemSet = armorsetsDB[armoraliases[baseName]];
+        itemSet = armorsetsDB[armoraliases[baseName.toLowerCase()]];
         if (itemSet == null){
             return -1;
         }

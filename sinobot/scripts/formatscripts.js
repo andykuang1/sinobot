@@ -1,4 +1,7 @@
 const weapontypesaliases = require('../database/weapontypesaliases.json');
+const armoraliases = require('../database/armoraliases.json');
+
+const dbscripts = require('./dbscripts.js')
 
 whitespace_regex = /\s+/g;
 parenbrackets_regex = /[\[\]\(\)]/g;
@@ -22,13 +25,24 @@ module.exports.parseArmorArgument = function(args){
         itemWeapon = args[1];
         // !armor [itemType] [itemWeapon] [itemName]    ex. !armor set hammer replicant
         if (itemWeapon.toLowerCase() in weapontypesaliases){
-            itemWeapon = weapontypesaliases[itemWeapon];
             itemName = args.slice(2).join(' ');
+            itemSet = dbscripts.getArmorSet(itemName);
+            itemWeapon = weapontypesaliases[itemWeapon.toLowerCase()];
+            // Special case for sets like invader that don't have all weapon types
+            if (itemSet != -1 && 'special' in itemSet && !(itemSet['special'].includes(itemWeapon))){
+                return [-1, armoraliases[itemName.toLowerCase()]];
+            }
         }
         // no [itemWeapon] - !armor [itemType] [itemName]    ex. !armor set replicant
         else{
-            itemWeapon = 'Blade';
-            itemName = args.slice(1).join(' ');
+                itemName = args.slice(1).join(' ');
+                itemSet = dbscripts.getArmorSet(itemName)
+                if (itemSet != -1 && 'special' in itemSet){
+                    arrayLength = itemSet['special'].length;
+                    itemWeapon = itemSet['special'][Math.floor(Math.random() * arrayLength)];
+                }
+                else
+                    itemWeapon = 'Blade';
         }
     }
     // no [itemType]
@@ -37,7 +51,12 @@ module.exports.parseArmorArgument = function(args){
         // !armor [itemWeapon] [itemName]    ex. !armor hammer replicant
         if (itemWeapon.toLowerCase() in weapontypesaliases){
             itemName = args.slice(1).join(' ');
-            itemWeapon = weapontypesaliases[itemWeapon];
+            itemSet = dbscripts.getArmorSet(itemName)
+            itemWeapon = weapontypesaliases[itemWeapon.toLowerCase()];
+            // Special case for sets like invader that don't have all weapon types
+            if (itemSet != -1 && 'special' in itemSet && !(itemSet['special'].includes(itemWeapon))){
+                return [-1, armoraliases[itemName.toLowerCase()]];
+            }
         }
         // no [itemWeapon] - !armor [itemName]    ex. !armor replicant
         else{
@@ -45,10 +64,22 @@ module.exports.parseArmorArgument = function(args){
             if (potentialWeapon in weapontypesaliases){
                 itemWeapon = weapontypesaliases[potentialWeapon];
                 itemName = args.slice(0, args.length-1).join(' ');
+                itemSet = dbscripts.getArmorSet(itemName);
+                itemWeapon = weapontypesaliases[itemWeapon.toLowerCase()];
+                // Special case for sets like invader that don't have all weapon types
+                if (itemSet != -1 && 'special' in itemSet && !(itemSet['special'].includes(itemWeapon))){
+                    return [-1, armoraliases[itemName.toLowerCase()]];
+                }
             }
             else{
-                itemWeapon = 'Blade';
                 itemName = args.join(' ');
+                itemSet = dbscripts.getArmorSet(itemName);
+                if (itemSet != -1 && 'special' in itemSet){
+                    arrayLength = itemSet['special'].length;
+                    itemWeapon = itemSet['special'][Math.floor(Math.random() * arrayLength)];
+                }
+                else
+                    itemWeapon = 'Blade';
             }
         }
     }
@@ -111,8 +142,18 @@ module.exports.formatSkills = function(itemDetails, type){
             \n\n*Set Effect*\n**${itemDetails['set_effect'].split('\n')[0]}**: ${itemDetails['set_effect'].split('\n')[1]}`
     }
     else if (type == 'nightmare'){
+        if (itemDetails['duration'] == 0){
+            duration = 'Permanent';
+            label = '';
+        }
+        else{
+            duration = itemDetails['duration'];
+            label = 'seconds';
+        }
         formattedString = `*Story*\n **${itemDetails['story_skill'].split('\n')[0]}**: ${itemDetails['story_skill'].split('\n')[1]}\
-            \n\n*Colosseum*\n**${itemDetails['colo_skill'].split('\n')[0]}**: ${itemDetails['colo_skill'].split('\n')[1]}`
+            \n\n*Colosseum*\n**${itemDetails['colo_skill'].split('\n')[0]}**: ${itemDetails['colo_skill'].split('\n')[1]}\
+            \nPreparation Time: **${itemDetails['prep_time']} seconds**\
+            \nDuration: **${duration} ${label}**`
     }
     return formattedString;
 };
