@@ -18,9 +18,9 @@ client.once('ready', function () {
 
 client.on('message', function (message) {
     // Our bot needs to know if it will execute a command
-    // It will listen for messages that will start with `!`
-    if (message.content.substring(0, 1) == '!') {
-        var args = message.content.substring(1).split(' ');
+    // It will listen for messages that will start with `!!`
+    if (message.content.substring(0, 2) == "!!") {
+        var args = message.content.substring(2).split(' ');
         var cmd = args[0];
        
         args = args.splice(1);
@@ -29,7 +29,7 @@ client.on('message', function (message) {
             case 'commands':
             case 'help':
                 console.log(message.content);
-                message.channel.send('Available Commands: \n**!help**, \n**!weapons**, \n**!armor**, \n**!nightmares**')
+                message.channel.send('Available Commands: \n**!!help**, \n**!!weapons**, \n**!!armor**, \n**!!nightmares**')
 
                 break;
             // !update [type]    ex. !update weapons

@@ -6,6 +6,7 @@
   "author": "Reverie",
   "dependencies": {
     "chromedriver": "^85.0.0",
-    "discord.js": "^12.3.1"
+    "discord.js": "^12.3.1",
+    "fuse.js": "^6.4.1"
   }
 }
