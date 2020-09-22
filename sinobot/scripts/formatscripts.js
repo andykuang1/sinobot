@@ -8,7 +8,7 @@ parenbrackets_regex = /[\[\]\(\)]/g;
 
 //takes and returns a string
 function formatSpacing(number){
-    return (number < 1000) ? ' ' + number : number;
+    return (number < 1000) ? '' + number : number;
 }
 
 module.exports.capitalize = function(item){
@@ -90,8 +90,9 @@ module.exports.formatWeaponStats = function(itemDetails){
     pdps = ['Hammer', 'Sword', 'Instrument', 'Tome'];
     mdps = ['Orb', 'Spear', 'Ranged', 'Instrument', 'Tome'];
     // Shared details first
-    formattedString = `\`\`\`PATK: ${formatSpacing(itemDetails['patk'])}\tMATK: ${formatSpacing(itemDetails['matk'])}\
-            \nPDEF: ${formatSpacing(itemDetails['pdef'])}\tMDEF: ${formatSpacing(itemDetails['mdef'])}`;
+    formattedString = `\`\`\`\nPATK: ${formatSpacing(itemDetails['patk'])}\tMATK: ${formatSpacing(itemDetails['matk'])}\
+            \nPDEF: ${formatSpacing(itemDetails['pdef'])}\tMDEF: ${formatSpacing(itemDetails['mdef'])}\
+            \nCost: ${formatSpacing(itemDetails['weapon_cost'])}`;
     // Total ATK only for supports
     if (['Instrument', 'Tome'].includes(itemDetails['type'])){
         formattedString += `\n\nTotal ATK: ${formatSpacing(itemDetails['total_atk'])}\
