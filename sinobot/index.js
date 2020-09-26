@@ -4,7 +4,6 @@ const createembedscripts = require('./scripts/createembedscripts.js');
 const dbscripts = require('./scripts/dbscripts.js');
 
 const config = require('./config.json');
-const weaponsDB = require('./database/weaponsDB.json');
 
 const Discord = require('discord.js');
 
@@ -13,7 +12,7 @@ var client = new Discord.Client({autoreconnect: true});
 client.login(config['token']);
 
 client.once('ready', function () {
-    console.log('Ready!');
+    console.log('Client is ready!');
 });
 
 client.on('message', function (message) {
@@ -43,14 +42,18 @@ client.on('message', function (message) {
             case 'w':
                 console.log(message.content);
                 // If item is not in our current database, check if it is an alias. If not, return error
-                item = dbscripts.getItem(args.join(' '), 'weapon');
-                if (item == -1){
-                    message.channel.send(`${args.join(' ')} was not found in the database.`);
-                    break;
+                async function processWeaponCommand(args){
+                    item = await dbscripts.getItem(args.join(' '), 'weapons');
+                    console.log(item);
+                    if (item.length === 0){
+                        message.channel.send(`${args.join(' ')} was not found in the database.`);
+                        return;
+                    }
+                    // Build message to send
+                    embedMessage = createembedscripts.createEmbedMessageItem(item[0], 'weapons');
+                    message.channel.send(embedMessage);
                 }
-                // Build message to send
-                embedMessage = createembedscripts.createEmbedMessageItem(item, 'weapon');
-                message.channel.send(embedMessage);
+                processWeaponCommand(args);
                 break;
             // !armor [itemType:optional] [itemWeapon:defaults to 'Blade'] [baseName]    ex. !armor set hammer replicant
             case 'armor':
@@ -118,14 +121,19 @@ client.on('message', function (message) {
             case 'n':
                 console.log(message.content);
                 // If item is not in our current database, check if it is an alias. If not, return error
-                item = dbscripts.getItem(args.join(' '), 'nightmare');
-                if (item == -1){
-                    message.channel.send(`${args.join(' ')} was not found in the database.`);
-                    break;
+                async function processNightmareCommand(args){
+                    item = await dbscripts.getItem(args.join(' '), 'weapons');
+                    console.log(item);
+                    if (item.length === 0){
+                        message.channel.send(`${args.join(' ')} was not found in the database.`);
+                        return;
+                    }
+                    // Build message to send
+                    embedMessage = createembedscripts.createEmbedMessageItem(item[0], 'nightmares');
+                    message.channel.send(embedMessage);
                 }
-                // Build message to send
-                embedMessage = createembedscripts.createEmbedMessageItem(item, 'nightmare');
-                message.channel.send(embedMessage);
+                processWeaponCommand(args);
+                break;
          }
      }
 });

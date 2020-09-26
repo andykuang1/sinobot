@@ -86,27 +86,27 @@ module.exports.parseArmorArgument = function(args){
     return [itemName, itemWeapon];
 };
 
-module.exports.formatWeaponStats = function(itemDetails){
+module.exports.formatWeaponStats = function(item){
     pdps = ['Hammer', 'Sword', 'Instrument', 'Tome'];
     mdps = ['Orb', 'Spear', 'Ranged', 'Instrument', 'Tome'];
     // Shared details first
-    formattedString = `\`\`\`PATK: ${formatSpacing(itemDetails['patk'])}\tMATK: ${formatSpacing(itemDetails['matk'])}\
-            \nPDEF: ${formatSpacing(itemDetails['pdef'])}\tMDEF: ${formatSpacing(itemDetails['mdef'])}`;
+    formattedString = `\`\`\`PATK: ${formatSpacing(item.patk)}\tMATK: ${formatSpacing(item.matk)}\
+            \nPDEF: ${formatSpacing(item.pdef)}\tMDEF: ${formatSpacing(item.mdef)}`;
     // Total ATK only for supports
-    if (['Instrument', 'Tome'].includes(itemDetails['type'])){
-        formattedString += `\n\nTotal ATK: ${formatSpacing(itemDetails['total_atk'])}\
-        \nTotal DEF: ${formatSpacing(itemDetails['total_def'])}`;
+    if (['Instrument', 'Tome'].includes(item.type)){
+        formattedString += `\n\nTotal ATK: ${formatSpacing(item.total_atk)}\
+        \nTotal DEF: ${formatSpacing(item.total_def)}`;
     }
     else{
         // Shared detail again
-        formattedString += `\n\nTotal DEF: ${formatSpacing(itemDetails['total_def'])}`;
+        formattedString += `\n\nTotal DEF: ${formatSpacing(item.total_def)}`;
     }
     // details by weapon type
-    if (pdps.includes(itemDetails['type']))
-        formattedString += `\nTotal P.DPS Stat (P.ATK+T.DEF): ${formatSpacing(itemDetails['pdps'])}`;
-    if (mdps.includes(itemDetails['type']))
-        formattedString += `\nTotal M.DPS Stat (M.ATK+T.DEF): ${formatSpacing(itemDetails['mdps'])}`;
-    formattedString += `\nTotal Stat: ${itemDetails['total_stat'].replace(whitespace_regex, '')}\`\`\``;
+    if (pdps.includes(item.type))
+        formattedString += `\nTotal P.DPS Stat (P.ATK+T.DEF): ${formatSpacing(item.pdps)}`;
+    if (mdps.includes(item.type))
+        formattedString += `\nTotal M.DPS Stat (M.ATK+T.DEF): ${formatSpacing(item.mdps)}`;
+    formattedString += `\nTotal Stat: ${item.total_stat.replace(whitespace_regex, '')}\`\`\``;
     return formattedString;
 };
 
@@ -116,43 +116,43 @@ module.exports.formatArmorStats = function(itemDetails){
     return formattedString;
 };
 
-module.exports.formatNightmareStats = function(itemDetails){
+module.exports.formatNightmareStats = function(item){
     formattedString = `\`\`\`0LB Stats:\
-        \nPATK: ${formatSpacing(itemDetails['base_patk'])}\tMATK: ${formatSpacing(itemDetails['base_matk'])}\
-        \nPDEF: ${formatSpacing(itemDetails['base_pdef'])}\tMDEF: ${formatSpacing(itemDetails['base_mdef'])}\
-        \nTotal Stat: ${itemDetails['base_total'].replace(whitespace_regex, '')}\
+        \nPATK: ${formatSpacing(item.base_patk)}\tMATK: ${formatSpacing(item.base_matk)}\
+        \nPDEF: ${formatSpacing(item.base_pdef)}\tMDEF: ${formatSpacing(item.base_mdef)}\
+        \nTotal Stat: ${item.base_total.replace(whitespace_regex, '')}\
         \n\nMLB Stats: \
-        \nPATK: ${formatSpacing(itemDetails['evo_patk'])}\tMATK: ${formatSpacing(itemDetails['evo_matk'])}\
-        \nPDEF: ${formatSpacing(itemDetails['evo_pdef'])}\tMDEF: ${formatSpacing(itemDetails['evo_mdef'])}\
-        \nTotal Stat: ${itemDetails['evo_total'].replace(whitespace_regex, '')}
-        \n\nTotal MLB DEF: ${formatSpacing(itemDetails['total_def']).replace(whitespace_regex, '')}\
-        \nTotal MLB P.DPS Stat (P.ATK+T.DEF): ${formatSpacing(itemDetails['pdps'])}\
-        \nTotal MLB M.DPS Stat (M.ATK+T.DEF): ${formatSpacing(itemDetails['mdps'])}\`\`\``
+        \nPATK: ${formatSpacing(item.evo_patk)}\tMATK: ${formatSpacing(item.evo_matk)}\
+        \nPDEF: ${formatSpacing(item.evo_pdef)}\tMDEF: ${formatSpacing(item.evo_mdef)}\
+        \nTotal Stat: ${item.evo_total.replace(whitespace_regex, '')}
+        \n\nTotal MLB DEF: ${formatSpacing(item.total_def).replace(whitespace_regex, '')}\
+        \nTotal MLB P.DPS Stat (P.ATK+T.DEF): ${formatSpacing(item.pdps)}\
+        \nTotal MLB M.DPS Stat (M.ATK+T.DEF): ${formatSpacing(item.mdps)}\`\`\``
     return formattedString;
 }
 
-module.exports.formatSkills = function(itemDetails, type){
+module.exports.formatSkills = function(item, type){
     if (type == 'weapon'){
-        formattedString = `*Story*\n**${itemDetails['story_skill'].split('\n')[0]}**: ${itemDetails['story_skill'].split('\n')[1]}\
-            \n\n*Colosseum*\n**${itemDetails['colo_skill'].split('\n')[0]}**: ${itemDetails['colo_skill'].split('\n')[1]}\
-            \n\n*Colosseum Support*\n**${itemDetails['colo_support'].split('\n')[0]}**: ${itemDetails['colo_support'].split('\n')[1]}`
+        formattedString = `*Story*\n**${item.story_skill.split('\n')[0]}**: ${item.story_skill.split('\n')[1]}\
+            \n\n*Colosseum*\n**${item.colo_skill.split('\n')[0]}**: ${item.colo_skill.split('\n')[1]}\
+            \n\n*Colosseum Support*\n**${item.colo_support.split('\n')[0]}**: ${item.colo_support.split('\n')[1]}`
     }
     else if (type == 'armor'){
         formattedString = `*Story*\n**${itemDetails['story_skill'].split('\n')[0]}**: ${itemDetails['story_skill'].split('\n')[1]}\
             \n\n*Set Effect*\n**${itemDetails['set_effect'].split('\n')[0]}**: ${itemDetails['set_effect'].split('\n')[1]}`
     }
     else if (type == 'nightmare'){
-        if (itemDetails['duration'] == 0){
+        if (item.duration == 0){
             duration = 'Permanent';
             label = '';
         }
         else{
-            duration = itemDetails['duration'];
+            duration = item.duration;
             label = 'seconds';
         }
-        formattedString = `*Story*\n **${itemDetails['story_skill'].split('\n')[0]}**: ${itemDetails['story_skill'].split('\n')[1]}\
-            \n\n*Colosseum*\n**${itemDetails['colo_skill'].split('\n')[0]}**: ${itemDetails['colo_skill'].split('\n')[1]}\
-            \nPreparation Time: **${itemDetails['prep_time']} seconds**\
+        formattedString = `*Story*\n **${item.story_skill.split('\n')[0]}**: ${item.story_skill.split('\n')[1]}\
+            \n\n*Colosseum*\n**${item.colo_skill.split('\n')[0]}**: ${item.colo_skill.split('\n')[1]}\
+            \nPreparation Time: **${item.prep_time} seconds**\
             \nDuration: **${duration} ${label}**`
     }
     return formattedString;

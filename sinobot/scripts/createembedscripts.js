@@ -8,24 +8,22 @@ const setbonuses = require('../database/setbonuses.json');
 const Discord = require('discord.js');
 
 module.exports.createEmbedMessageItem = function(item, type){
-    itemName = item[0];
-    itemDetails = item[1];
-    itemTitle = `${itemName} \n${itemDetails['altName']}`;
-    itemThumbnail = {url: itemDetails['icon']};
-    if (type == 'weapon'){
-        itemUrl = `https://sinoalice.game-db.tw/weapons/${itemDetails['altName'].replace(' ', '%20')}`;
-        statsValue = formatscripts.formatWeaponStats(itemDetails);
-        skillsValue = formatscripts.formatSkills(itemDetails, 'weapon');
+    itemTitle = `${item.itemName} \n${item.altName}`;
+    itemThumbnail = {url: item.icon};
+    if (type == 'weapons'){
+        itemUrl = `https://sinoalice.game-db.tw/weapons/${item.altName.replace(' ', '%20')}`;
+        statsValue = formatscripts.formatWeaponStats(item);
+        skillsValue = formatscripts.formatSkills(item, 'weapon');
     }
     else if (type == 'armor'){
         itemUrl = `https://sinoalice.game-db.tw/armor/${itemDetails['altName'].replace(' ', '%20')}`;
         statsValue = formatscripts.formatArmorStats(itemDetails);
         skillsValue = formatscripts.formatSkills(itemDetails, 'armor');
     }
-    else if (type == 'nightmare'){
-        itemUrl = `https://sinoalice.game-db.tw/nightmares/${itemDetails['altName'].replace(' ', '%20')}`;
-        statsValue = formatscripts.formatNightmareStats(itemDetails);
-        skillsValue = formatscripts.formatSkills(itemDetails, 'nightmare');
+    else if (type == 'nightmares'){
+        itemUrl = `https://sinoalice.game-db.tw/nightmares/${item.altName.replace(' ', '%20')}`;
+        statsValue = formatscripts.formatNightmareStats(item);
+        skillsValue = formatscripts.formatSkills(item, 'nightmare');
     }
     else{
         console.log('Unrecognized type in createEmbedMessageItem');
