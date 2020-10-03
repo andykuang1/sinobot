@@ -6,7 +6,6 @@ const setbonuses = require('../database/setbonuses.json');
 const Discord = require('discord.js');
 
 module.exports.createEmbedMessageItem = function(item, type){
-    console.log(item);
     itemTitle = `${item.itemName} \n${item.altName}`;
     itemThumbnail = {url: item.icon};
     if (type == 'weapons'){
