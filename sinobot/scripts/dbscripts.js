@@ -1,66 +1,180 @@
 const formatscripts = require('./formatscripts.js')
 
-const weaponsDB = require('../database/weaponsDB.json');
-const armorDB = require('../database/armorDB.json');
-const armorsetsDB = require('../database/armorsetsDB.json');
-const nightmaresDB = require('../database/nightmaresDB.json');
-const weaponsaliases = require('../database/weaponsaliases.json');
+const armorsets = require('../database/armorsets.json');
 const weapontypesaliases = require('../database/weapontypesaliases.json');
-const armoraliases = require('../database/armoraliases.json');
-const nightmaresaliases = require('../database/nightmaresaliases.json');
+
+// Initialize Database
+var knex = require('knex')({
+  client: 'mysql',
+  connection: {
+    host : 'localhost',
+    user : 'PLACEHOLDERUSER',
+    password : 'PLACEHOLDERPASSWORD',
+    database : 'sinodb'
+  },
+  acquireConnectionTimeout: 10000
+});
+
+// ------------------------------------------------------ DB TABLE SCRIPTS ------------------------------------------------------
+
+create_weapons_db_script = `CREATE TABLE weaponsDB(
+    id INT auto_increment PRIMARY KEY,
+    itemName VARCHAR(255) UNIQUE,
+    icon VARCHAR(255),
+    altName VARCHAR(255),
+    ele VARCHAR(20),
+    story_skill VARCHAR(255),
+    colo_skill VARCHAR(255),
+    item_type VARCHAR(20),
+    colo_support VARCHAR(255),
+    patk INT,
+    pdef INT,
+    matk INT,
+    mdef INT,
+    total_stat VARCHAR(20),
+    total_atk INT,
+    total_def INT,
+    pdps INT,
+    mdps INT,
+    weapon_cost INT
+    );`;
+
+create_armor_db_script = `CREATE TABLE armorDB(
+    id INT auto_increment PRIMARY KEY,
+    itemName VARCHAR(255) UNIQUE,
+    icon VARCHAR(255),
+    altName VARCHAR(255),
+    ele VARCHAR(20),
+    effective_against VARCHAR(100),
+    set_effect VARCHAR(255),
+    item_type VARCHAR(20),
+    pdef INT,
+    mdef INT,
+    total_stat VARCHAR(20),
+    set_total VARCHAR(20),
+    story_skill VARCHAR(255)
+    );`;
+
+create_nightmares_db_script = `CREATE TABLE nightmaresDB(
+    id INT auto_increment PRIMARY KEY,
+    itemName VARCHAR(255) UNIQUE,
+    icon VARCHAR(255),
+    altName VARCHAR(255),
+    story_skill VARCHAR(255),
+    colo_skill VARCHAR(255),
+    base_patk INT,
+    base_pdef INT,
+    base_matk INT,
+    base_mdef INT,
+    base_total VARCHAR(20),
+    evo_patk INT,
+    evo_pdef INT,
+    evo_matk INT,
+    evo_mdef INT,
+    evo_total VARCHAR(20),
+    total_atk INT,
+    total_def INT,
+    pdps INT,
+    mdps INT,
+    prep_time INT,
+    duration INT
+    );`;
+
+create_weapons_alias_script = `CREATE TABLE weaponsaliases(
+    id INT auto_increment PRIMARY KEY,
+    alias VARCHAR(255) UNIQUE,
+    originalName VARCHAR(255),
+    FOREIGN KEY(originalName) REFERENCES weaponsDB(itemName)
+    );`;
+
+create_armor_alias_script = `CREATE TABLE armoraliases(
+    id INT auto_increment PRIMARY KEY,
+    alias VARCHAR(255) UNIQUE,
+    originalName VARCHAR(255),
+    FOREIGN KEY(originalName) REFERENCES armorDB(itemName)
+    );`;
+
+create_armorsets_alias_script = `CREATE TABLE armorsetsaliases(
+    id INT auto_increment PRIMARY KEY,
+    alias VARCHAR(255) UNIQUE,
+    originalName VARCHAR(255)
+    );`;
+
+create_nightmare_alias_script = `CREATE TABLE nightmaresaliases(
+    id INT auto_increment PRIMARY KEY,
+    alias VARCHAR(255) UNIQUE,
+    originalName VARCHAR(255),
+    FOREIGN KEY(originalName) REFERENCES nightmaresDB(itemName)
+    );`;
+
+// ------------------------------------------------------ SELECTS ------------------------------------------------------
+
+// Columns returned: originalName
+module.exports.getOriginalName = async function(itemName, type){
+    rows = await knex.select('originalName').from(`${type}aliases`).where('alias', '=', itemName).catch(err => console.log(err));
+    if (rows === undefined || rows.length == 0)
+        return -1;
+    return rows[0].originalName;
+};
+
+// Columns returned: alias
+module.exports.get_armor_aliases = async function(){
+    return knex.select('alias').from('armoraliases').catch(err => console.log(err));
+};
+
+// Columns returned: alias
+module.exports.get_armorsets_aliases = async function(){
+    return knex.select('alias').from('armorsetsaliases').catch(err => console.log(err));
+};
 
 // returns the full name of the armor item    ex. 2B's Goggles [Blade] / Nameless Youth's Hairband (Blade)
-module.exports.getFullName = function(item, itemWeapon){
-    fullItemNameParens = armoraliases[`${item} (${weapontypesaliases[itemWeapon.toLowerCase()]})`.toLowerCase()];
-    fullItemNameBrackets = armoraliases[`${item} [${weapontypesaliases[itemWeapon.toLowerCase()]}]`.toLowerCase()];
-    if (fullItemNameParens in armorDB){
-        fullItemName = fullItemNameParens;
-    }
-    else if (fullItemNameBrackets in armorDB)
-        fullItemName = fullItemNameBrackets;
-    else
-        return -1;
-    return fullItemName;
+module.exports.getFullName = async function(item, itemWeapon){
+    fullItemNameParens = await knex.select('originalName').from('armoraliases').where('alias', '=', `${item} (${weapontypesaliases[itemWeapon.toLowerCase()]})`).catch(function(){return -1;});
+    if (fullItemNameParens !== undefined && fullItemNameParens.length != 0)
+        return fullItemNameParens[0].originalName;
+
+    fullItemNameBrackets = await knex.select('originalName').from('armoraliases').where('alias', '=', `${item} [${weapontypesaliases[itemWeapon.toLowerCase()]}]`).catch(function(){return -1;});
+    if (fullItemNameBrackets !== undefined && fullItemNameBrackets.length != 0)
+        return fullItemNameBrackets[0].originalName;
+
+    return -1;
 };
 
-// returns [itemName, itemDetails]
-module.exports.getItem = function(item, type){
-    if (type == 'weapon'){
-        if (!(item in weaponsDB)){
-            item = weaponsaliases[item.toLowerCase()];
-            if (item == null)
-                return -1;
-        }
-        return [item, weaponsDB[item]];
-    }
-    else if (type == 'armor'){
-        if (!(item in armorDB)){
-            item = armoraliases[item.toLowerCase()];
-            if (item == null)
-                return -1;
-        }
-        return [item, armorDB[item]];
-    }
-    else if (type == 'nightmare'){
-        if (!(item in nightmaresDB)){
-            item = nightmaresaliases[item.toLowerCase()];
-            if (item == null)
-                return -1;
-        }
-        return [item, nightmaresDB[item]];
-    }
-    else
+// Columns returned varies based on weapon, armor, nightmare
+module.exports.getItem = async function(item, type){
+    itemNameRows = await knex.select('originalName').from(`${type}aliases`).where('alias', '=', item).catch(err => console.log(err));
+    if (itemNameRows === undefined || itemNameRows == 0)
         return -1;
+    results = await knex.select('*').from(`${type}db`).where('itemName', '=', itemNameRows[0].originalName).catch(err => console.log(err));
+    if (results === undefined || results.length == 0)
+        return -1;
+    return results[0];
 };
 
-module.exports.getArmorSet = function(baseName){
-    if (!(baseName in armorsetsDB)){
-        itemSet = armorsetsDB[armoraliases[baseName.toLowerCase()]];
+// Returns a set from armorsets.json
+module.exports.getArmorSet = async function(baseName){
+    if (!(baseName in armorsets)){
+        originalName = await exports.getOriginalName(baseName, 'armorsets');
+        if (originalName == -1)
+            return -1;
+        itemSet = armorsets[originalName];
         if (itemSet == null){
             return -1;
         }
     }
     else
-        itemSet = armorsetsDB[baseName];
+        itemSet = armorsets[baseName];
     return itemSet;
-}
+};
+
+// ------------------------------------------------------ INSERTS ------------------------------------------------------
+
+module.exports.add_alias = async function(aliasToInsert, nameToInsert){
+    knex.insert({alias: aliasToInsert, originalName: nameToInsert}).into('armorsetsaliases').catch(err => console.log(err));
+};
+
+// ------------------------------------------------------ CLEANUP ------------------------------------------------------
+
+module.exports.close_connection = async function(){
+    knex.destroy();
+};
