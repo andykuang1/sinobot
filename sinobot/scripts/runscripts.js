@@ -15,7 +15,8 @@ function runScraperScript(type){
 async function addArmorAliases(){
     data = await dbscripts.get_armorsets_aliases();
     currentAliases = [];
-    data.forEach(row => {currentAliases.push(row.alias);})
+    if (data !== undefined && data.length > 0)
+        data.forEach(row => {currentAliases.push(row.alias);})
     for (setName in armorsets){
         aliasesList = new Set();
         [setName, setName.replace(' ', ''), setName.replace('\'', ''), setName.replace(' ', '').replace('\'', '')].forEach(item => aliasesList.add(item));
