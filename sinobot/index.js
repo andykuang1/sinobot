@@ -44,13 +44,12 @@ client.on('message', function (message) {
                 // If item is not in our current database, check if it is an alias. If not, return error
                 async function processWeaponCommand(){
                     item = await dbscripts.getItem(args.join(' '), 'weapons');
-                    if (item === undefined || item.length == 0){
+                    if (item == -1){
                         message.channel.send(`${args.join(' ')} was not found in the database.`);
                         return;
                     }
-                    console.log(item);
                     // Build message to send
-                    embedMessage = createembedscripts.createEmbedMessageItem(item[0], 'weapons');
+                    embedMessage = createembedscripts.createEmbedMessageItem(item, 'weapons');
                     message.channel.send(embedMessage);
                 }
                 processWeaponCommand();
