@@ -1,23 +1,21 @@
 const formatscripts = require('./formatscripts.js')
 
-const armorDB = require('../database/armorDB.json');
-const armorsetsDB = require('../database/armorsetsDB.json');
-const nightmaresDB = require('../database/nightmaresDB.json');
-const weaponsaliases = require('../database/weaponsaliases.json');
+const armorsets = require('../database/armorsets.json');
 const weapontypesaliases = require('../database/weapontypesaliases.json');
-const armoraliases = require('../database/armoraliases.json');
-const nightmaresaliases = require('../database/nightmaresaliases.json');
 
 // Initialize Database
 var knex = require('knex')({
   client: 'mysql',
   connection: {
-    host : '127.0.0.1',
+    host : 'localhost',
     user : 'PLACEHOLDERUSER',
     password : 'PLACEHOLDERPASSWORD',
     database : 'sinodb'
-  }
+  },
+  acquireConnectionTimeout: 10000
 });
+
+// ------------------------------------------------------ DB TABLE SCRIPTS ------------------------------------------------------
 
 create_weapons_db_script = `CREATE TABLE weaponsDB(
     id INT auto_increment PRIMARY KEY,
@@ -39,7 +37,7 @@ create_weapons_db_script = `CREATE TABLE weaponsDB(
     pdps INT,
     mdps INT,
     weapon_cost INT
-    );`
+    );`;
 
 create_armor_db_script = `CREATE TABLE armorDB(
     id INT auto_increment PRIMARY KEY,
@@ -55,7 +53,7 @@ create_armor_db_script = `CREATE TABLE armorDB(
     total_stat VARCHAR(20),
     set_total VARCHAR(20),
     story_skill VARCHAR(255)
-    );`
+    );`;
 
 create_nightmares_db_script = `CREATE TABLE nightmaresDB(
     id INT auto_increment PRIMARY KEY,
@@ -80,93 +78,103 @@ create_nightmares_db_script = `CREATE TABLE nightmaresDB(
     mdps INT,
     prep_time INT,
     duration INT
-    );`
+    );`;
 
 create_weapons_alias_script = `CREATE TABLE weaponsaliases(
     id INT auto_increment PRIMARY KEY,
     alias VARCHAR(255) UNIQUE,
     originalName VARCHAR(255),
     FOREIGN KEY(originalName) REFERENCES weaponsDB(itemName)
-    );`
+    );`;
 
 create_armor_alias_script = `CREATE TABLE armoraliases(
     id INT auto_increment PRIMARY KEY,
     alias VARCHAR(255) UNIQUE,
     originalName VARCHAR(255),
     FOREIGN KEY(originalName) REFERENCES armorDB(itemName)
-    );`
+    );`;
+
+create_armorsets_alias_script = `CREATE TABLE armorsetsaliases(
+    id INT auto_increment PRIMARY KEY,
+    alias VARCHAR(255) UNIQUE,
+    originalName VARCHAR(255)
+    );`;
 
 create_nightmare_alias_script = `CREATE TABLE nightmaresaliases(
     id INT auto_increment PRIMARY KEY,
     alias VARCHAR(255) UNIQUE,
     originalName VARCHAR(255),
     FOREIGN KEY(originalName) REFERENCES nightmaresDB(itemName)
-    );`
+    );`;
 
-dbDict = {
-    'weapons': 'weaponsdb',
-    'armor': 'armordb',
-    'nightmares': 'nightmaresdb'
-}
+// ------------------------------------------------------ SELECTS ------------------------------------------------------
+
+// Columns returned: originalName
+module.exports.getOriginalName = async function(itemName, type){
+    rows = await knex.select('originalName').from(`${type}aliases`).where('alias', '=', itemName).catch(err => console.log(err));
+    if (rows === undefined || rows.length == 0)
+        return -1;
+    return rows[0].originalName;
+};
+
+// Columns returned: alias
+module.exports.get_armor_aliases = async function(){
+    return knex.select('alias').from('armoraliases').catch(err => console.log(err));
+};
+
+// Columns returned: alias
+module.exports.get_armorsets_aliases = async function(){
+    return knex.select('alias').from('armorsetsaliases').catch(err => console.log(err));
+};
 
 // returns the full name of the armor item    ex. 2B's Goggles [Blade] / Nameless Youth's Hairband (Blade)
-module.exports.getFullName = function(item, itemWeapon){
-    fullItemNameParens = armoraliases[`${item} (${weapontypesaliases[itemWeapon.toLowerCase()]})`.toLowerCase()];
-    fullItemNameBrackets = armoraliases[`${item} [${weapontypesaliases[itemWeapon.toLowerCase()]}]`.toLowerCase()];
-    if (fullItemNameParens in armorDB){
-        fullItemName = fullItemNameParens;
-    }
-    else if (fullItemNameBrackets in armorDB)
-        fullItemName = fullItemNameBrackets;
-    else
-        return -1;
-    return fullItemName;
+module.exports.getFullName = async function(item, itemWeapon){
+    fullItemNameParens = await knex.select('originalName').from('armoraliases').where('alias', '=', `${item} (${weapontypesaliases[itemWeapon.toLowerCase()]})`).catch(function(){return -1;});
+    if (fullItemNameParens !== undefined && fullItemNameParens.length != 0)
+        return fullItemNameParens[0].originalName;
+
+    fullItemNameBrackets = await knex.select('originalName').from('armoraliases').where('alias', '=', `${item} [${weapontypesaliases[itemWeapon.toLowerCase()]}]`).catch(function(){return -1;});
+    if (fullItemNameBrackets !== undefined && fullItemNameBrackets.length != 0)
+        return fullItemNameBrackets[0].originalName;
+
+    return -1;
 };
 
-// returns [itemName, itemDetails]
+// Columns returned varies based on weapon, armor, nightmare
 module.exports.getItem = async function(item, type){
-    results = await knex.select('*').from(`${type}db`).where('itemName', '=', item);
-    return results;
-    // function (err, result){
-    //     if (err)
-    //         return -1;
-    //     if (type == 'weapons'){
-    //         // if (!result){
-    //         //     item = weaponsaliases[item.toLowerCase()];
-    //         //     if (item == null)
-    //         //         return -1;
-    //         // }
-    //         return [item, result];
-    //     }
-    //     else if (type == 'armor'){
-    //         if (!(item in armorDB)){
-    //             item = armoraliases[item.toLowerCase()];
-    //             if (item == null)
-    //                 return -1;
-    //         }
-    //         return [item, armorDB[item]];
-    //     }
-    //     else if (type == 'nightmares'){
-    //         if (!(item in nightmaresDB)){
-    //             item = nightmaresaliases[item.toLowerCase()];
-    //             if (item == null)
-    //                 return -1;
-    //         }
-    //         return [item, nightmaresDB[item]];
-    //     }
-    //     else
-    //         return -1;
-    // });
+    itemNameRows = await knex.select('originalName').from(`${type}aliases`).where('alias', '=', item).catch(err => console.log(err));
+    if (itemNameRows === undefined || itemNameRows == 0)
+        return -1;
+    results = await knex.select('*').from(`${type}db`).where('itemName', '=', itemNameRows[0].originalName).catch(err => console.log(err));
+    if (results === undefined || results.length == 0)
+        return -1;
+    return results[0];
 };
 
-module.exports.getArmorSet = function(baseName){
-    if (!(baseName in armorsetsDB)){
-        itemSet = armorsetsDB[armoraliases[baseName.toLowerCase()]];
+// Returns a set from armorsets.json
+module.exports.getArmorSet = async function(baseName){
+    if (!(baseName in armorsets)){
+        originalName = await exports.getOriginalName(baseName, 'armorsets');
+        if (originalName == -1)
+            return -1;
+        itemSet = armorsets[originalName];
         if (itemSet == null){
             return -1;
         }
     }
     else
-        itemSet = armorsetsDB[baseName];
+        itemSet = armorsets[baseName];
     return itemSet;
-}
+};
+
+// ------------------------------------------------------ INSERTS ------------------------------------------------------
+
+module.exports.add_alias = async function(aliasToInsert, nameToInsert){
+    knex.insert({alias: aliasToInsert, originalName: nameToInsert}).into('armorsetsaliases').catch(err => console.log(err));
+};
+
+// ------------------------------------------------------ CLEANUP ------------------------------------------------------
+
+module.exports.close_connection = async function(){
+    knex.destroy();
+};

@@ -1,13 +1,12 @@
 const dbscripts = require('./dbscripts.js');
 const formatscripts = require('./formatscripts.js');
 
-const armoraliases = require('../database/armoraliases.json');
-const armorDB = require('../database/armorDB.json');
 const setbonuses = require('../database/setbonuses.json');
 
 const Discord = require('discord.js');
 
 module.exports.createEmbedMessageItem = function(item, type){
+    console.log(item);
     itemTitle = `${item.itemName} \n${item.altName}`;
     itemThumbnail = {url: item.icon};
     if (type == 'weapons'){
@@ -16,9 +15,9 @@ module.exports.createEmbedMessageItem = function(item, type){
         skillsValue = formatscripts.formatSkills(item, 'weapon');
     }
     else if (type == 'armor'){
-        itemUrl = `https://sinoalice.game-db.tw/armor/${itemDetails['altName'].replace(' ', '%20')}`;
-        statsValue = formatscripts.formatArmorStats(itemDetails);
-        skillsValue = formatscripts.formatSkills(itemDetails, 'armor');
+        itemUrl = `https://sinoalice.game-db.tw/armor/${item.altName.replace(' ', '%20')}`;
+        statsValue = formatscripts.formatArmorStats(item);
+        skillsValue = formatscripts.formatSkills(item, 'armor');
     }
     else if (type == 'nightmares'){
         itemUrl = `https://sinoalice.game-db.tw/nightmares/${item.altName.replace(' ', '%20')}`;
@@ -47,38 +46,45 @@ module.exports.createEmbedMessageItem = function(item, type){
     return embedMessage;
 };
 
-module.exports.createEmbedMessageArmorSet = function(itemSet, setName){
+module.exports.createEmbedMessageArmorSet = async function(itemSet, setName){
     baseName = setName[0];
     itemWeapon = setName[1];
     itemStats = ''
+    // Build up all the individual items
     for (item in itemSet){
         if ((item != 'unique') && (item != 'special')){
             if ('unique' in itemSet){
-                itemDetails = armorDB[itemSet[item]];
+                itemDetails = await dbscripts.getItem(itemSet[item], 'armor');
                 individualPieceName = itemSet[item];
             }
             else{
-                itemDetails = armorDB[dbscripts.getFullName(itemSet[item], itemWeapon)];
-                individualPieceName = dbscripts.getFullName(itemSet[item], itemWeapon);
+                fullItemName = await dbscripts.getFullName(itemSet[item], itemWeapon);
+                itemDetails = await dbscripts.getItem(fullItemName, 'armor');
+                individualPieceName = await dbscripts.getFullName(itemSet[item], itemWeapon);
             }
             if (!itemDetails)
                 console.log(`${baseName} is missing weapon type ${itemWeapon} in createEmbedMessageArmorSet`)
-            itemStats += `[${individualPieceName}](https://sinoalice.game-db.tw/armor/${itemDetails['altName'].replace(' ', '%20')})`;
+            itemStats += `[${individualPieceName}](https://sinoalice.game-db.tw/armor/${itemDetails.altName.replace(' ', '%20')})`;
             itemStats += formatscripts.formatArmorStats(itemDetails);
         }
     }
+    // Setup for set details
     if ('unique' in itemSet){
-        itemDetails = armorDB[itemSet['Body']];
-        embedTitle = `${armoraliases[baseName.toLowerCase()]} Set (Unique Pieces)`;
+        itemDetails = await dbscripts.getItem(itemSet['Body'], 'armor');
+        originalName = await dbscripts.getOriginalName(baseName, 'armorsets');
+        embedTitle = `${originalName} Set (Unique Pieces)`;
     }
     else{
-        itemDetails = armorDB[dbscripts.getFullName(itemSet['Body'], itemWeapon)];
-        embedTitle = `${armoraliases[baseName.toLowerCase()]} Set (${itemWeapon})`;
+        itemFullName = await dbscripts.getFullName(itemSet['Body'], itemWeapon)
+        itemDetails = await dbscripts.getItem(itemFullName, 'armor');
+        originalName = await dbscripts.getOriginalName(baseName, 'armorsets');
+        embedTitle = `${originalName} Set (${itemWeapon})`;
     }
     itemStats += `\n**Total Set Stat: ${itemDetails['set_total'].replace('...', '')}**`;
+    originalName = await dbscripts.getOriginalName(baseName, 'armor');
     embedMessage = new Discord.MessageEmbed({
         title: embedTitle,
-        url: `https://sinoalice.game-db.tw/setbonus/${setbonuses[armoraliases[baseName.toLowerCase()]]}`.replace(' ', '%20'),
+        url: `https://sinoalice.game-db.tw/setbonus/${setbonuses[originalName]}`.replace(' ', '%20'),
         thumbnail: {url: itemDetails['icon']},
         fields: [
             {

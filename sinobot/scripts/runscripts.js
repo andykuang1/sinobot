@@ -1,8 +1,8 @@
 var Discord = require('discord.js');
 const {spawn} = require('child_process');
 const path = require('path');
-const armorsets = require('../database/armorsetsDB.json');
-const fs = require('fs');
+const armorsets = require('../database/armorsets.json');
+const dbscripts = require('./dbscripts.js');
 
 var updatingWeapons = false;
 var updatingArmor = false;
@@ -12,29 +12,20 @@ function runScraperScript(type){
   return spawn('python', ["-u", path.join(__dirname, '../scraper/sinodbscraper.py'), "-t", type]);
 };
 
-function readFileCallback(err, data){
-    if (err){
-        console.log(err);
-    } else{
-        aliasesFileData = JSON.parse(data);
-        for (setName in armorsets){
-            aliasesList = [setName.replace(' ', ''), setName.toLowerCase(), setName.replace('\'', ''), 
-            setName.replace(' ', '').toLowerCase(), setName.replace(' ', '').replace('\'', ''), setName.toLowerCase().replace('\'', ''),
-            setName.replace(' ', '').toLowerCase().replace('\'', '')]
-            aliasesList.forEach(alias => {
-                if (!(alias in aliasesFileData))
-                    aliasesFileData[alias] = setName;
-            })
-        }
-        json = JSON.stringify(aliasesFileData);
-        fs.writeFile(path.join(__dirname, '../database/armoraliases.json'), json, 'utf8', function writeCallback(err){if (err) throw err;});
+async function addArmorAliases(){
+    data = await dbscripts.get_armorsets_aliases();
+    currentAliases = [];
+    data.forEach(row => {currentAliases.push(row.alias);})
+    for (setName in armorsets){
+        aliasesList = new Set();
+        [setName, setName.replace(' ', ''), setName.replace('\'', ''), setName.replace(' ', '').replace('\'', '')].forEach(item => aliasesList.add(item));
+        aliasesList.forEach(async function(alias){
+            if (!(currentAliases.includes(alias))){
+                await dbscripts.add_alias(alias, setName);
+            }
+        })
     }
 }
-
-function addArmorAliases(){
-    fs.readFile(path.join(__dirname, '../database/armoraliases.json'), 'utf8', readFileCallback);
-}
-
 addArmorAliases();
 
 function runWeaponsScript(message){

@@ -1,5 +1,4 @@
 const weapontypesaliases = require('../database/weapontypesaliases.json');
-const armoraliases = require('../database/armoraliases.json');
 
 const dbscripts = require('./dbscripts.js')
 
@@ -20,23 +19,26 @@ module.exports.capitalize = function(item){
 };
 
 // takes in an arg such as "set hammer replicant" and returns [itemName, itemWeapon] ex. ['replicant', 'Heavy']
-module.exports.parseArmorArgument = function(args){
+module.exports.parseArmorArgument = async function(args){
+    // has [itemType], so is an armor set
     if (['set', 'head', 'hands', 'feet', 'body'].includes(args[0].toLowerCase())){
         itemWeapon = args[1];
         // !armor [itemType] [itemWeapon] [itemName]    ex. !armor set hammer replicant
         if (itemWeapon.toLowerCase() in weapontypesaliases){
             itemName = args.slice(2).join(' ');
-            itemSet = dbscripts.getArmorSet(itemName);
+            itemSet = await dbscripts.getArmorSet(itemName);
             itemWeapon = weapontypesaliases[itemWeapon.toLowerCase()];
             // Special case for sets like invader that don't have all weapon types
             if (itemSet != -1 && 'special' in itemSet && !(itemSet['special'].includes(itemWeapon))){
-                return [-1, armoraliases[itemName.toLowerCase()]];
+                console.log(itemName);
+                originalName = await dbscripts.getOriginalName(itemName, 'armorsets');
+                return [-1, originalName];
             }
         }
         // no [itemWeapon] - !armor [itemType] [itemName]    ex. !armor set replicant
         else{
                 itemName = args.slice(1).join(' ');
-                itemSet = dbscripts.getArmorSet(itemName)
+                itemSet = await dbscripts.getArmorSet(itemName);
                 if (itemSet != -1 && 'special' in itemSet){
                     arrayLength = itemSet['special'].length;
                     itemWeapon = itemSet['special'][Math.floor(Math.random() * arrayLength)];
@@ -45,17 +47,18 @@ module.exports.parseArmorArgument = function(args){
                     itemWeapon = 'Blade';
         }
     }
-    // no [itemType]
+    // no [itemType], can be armortype or individual item
     else{
         itemWeapon = args[0];
         // !armor [itemWeapon] [itemName]    ex. !armor hammer replicant
         if (itemWeapon.toLowerCase() in weapontypesaliases){
             itemName = args.slice(1).join(' ');
-            itemSet = dbscripts.getArmorSet(itemName)
+            itemSet = await dbscripts.getArmorSet(itemName)
             itemWeapon = weapontypesaliases[itemWeapon.toLowerCase()];
             // Special case for sets like invader that don't have all weapon types
             if (itemSet != -1 && 'special' in itemSet && !(itemSet['special'].includes(itemWeapon))){
-                return [-1, armoraliases[itemName.toLowerCase()]];
+                originalName = await dbscripts.getOriginalName(itemName, 'armorsets')
+                return [-1, originalName];
             }
         }
         // no [itemWeapon] - !armor [itemName]    ex. !armor replicant
@@ -64,16 +67,17 @@ module.exports.parseArmorArgument = function(args){
             if (potentialWeapon in weapontypesaliases){
                 itemWeapon = weapontypesaliases[potentialWeapon];
                 itemName = args.slice(0, args.length-1).join(' ');
-                itemSet = dbscripts.getArmorSet(itemName);
+                itemSet = await dbscripts.getArmorSet(itemName);
                 itemWeapon = weapontypesaliases[itemWeapon.toLowerCase()];
                 // Special case for sets like invader that don't have all weapon types
                 if (itemSet != -1 && 'special' in itemSet && !(itemSet['special'].includes(itemWeapon))){
-                    return [-1, armoraliases[itemName.toLowerCase()]];
+                    originalName = await dbscripts.getOriginalName(itemName, 'armorsets')
+                    return [-1, originalName];
                 }
             }
             else{
                 itemName = args.join(' ');
-                itemSet = dbscripts.getArmorSet(itemName);
+                itemSet = await dbscripts.getArmorSet(itemName);
                 if (itemSet != -1 && 'special' in itemSet){
                     arrayLength = itemSet['special'].length;
                     itemWeapon = itemSet['special'][Math.floor(Math.random() * arrayLength)];
@@ -110,9 +114,9 @@ module.exports.formatWeaponStats = function(item){
     return formattedString;
 };
 
-module.exports.formatArmorStats = function(itemDetails){
-    formattedString = `\`\`\`\nPDEF: ${formatSpacing(itemDetails['pdef'])}\tMDEF: ${formatSpacing(itemDetails['mdef'])}\
-        \n\nTotal DEF: ${formatSpacing(itemDetails['total_stat']).replace(whitespace_regex, '')}\`\`\``;
+module.exports.formatArmorStats = function(item){
+    formattedString = `\`\`\`\nPDEF: ${formatSpacing(item.pdef)}\tMDEF: ${formatSpacing(item.mdef)}\
+        \n\nTotal DEF: ${formatSpacing(item.total_stat).replace(whitespace_regex, '')}\`\`\``;
     return formattedString;
 };
 
@@ -125,7 +129,7 @@ module.exports.formatNightmareStats = function(item){
         \nPATK: ${formatSpacing(item.evo_patk)}\tMATK: ${formatSpacing(item.evo_matk)}\
         \nPDEF: ${formatSpacing(item.evo_pdef)}\tMDEF: ${formatSpacing(item.evo_mdef)}\
         \nTotal Stat: ${item.evo_total.replace(whitespace_regex, '')}
-        \n\nTotal MLB DEF: ${formatSpacing(item.total_def).replace(whitespace_regex, '')}\
+        \n\nTotal MLB DEF: ${String(formatSpacing(item.total_def)).replace(whitespace_regex, '')}\
         \nTotal MLB P.DPS Stat (P.ATK+T.DEF): ${formatSpacing(item.pdps)}\
         \nTotal MLB M.DPS Stat (M.ATK+T.DEF): ${formatSpacing(item.mdps)}\`\`\``
     return formattedString;
