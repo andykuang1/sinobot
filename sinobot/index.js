@@ -84,6 +84,10 @@ client.on('message', function (message) {
                         message.channel.send(`"${parsedArgument[1]} Set" does not contain the given weapon type.`);
                         return;
                     }
+                    else if (baseName.trim() == ''){
+                        sendNotFoundMessage(message, args.join(' '), 'armor');
+                        return;
+                    }
                     armorWeaponType = parsedArgument[1];
                     itemSet = await dbscripts.getArmorSet(baseName);
                     if (itemType.toLowerCase() == 'set'){

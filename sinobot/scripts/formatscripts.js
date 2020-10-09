@@ -23,6 +23,8 @@ module.exports.parseArmorArgument = async function(args){
     // has [itemType], so is an armor set
     if (['set', 'head', 'hands', 'feet', 'body'].includes(args[0].toLowerCase())){
         itemWeapon = args[1];
+        if (itemWeapon == undefined || itemWeapon.length == 0)
+            return ['', ''];
         // !armor [itemType] [itemWeapon] [itemName]    ex. !armor set hammer replicant
         if (itemWeapon.toLowerCase() in weapontypesaliases){
             itemName = args.slice(2).join(' ');
