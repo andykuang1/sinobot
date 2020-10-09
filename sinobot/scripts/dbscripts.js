@@ -2,7 +2,9 @@ const formatscripts = require('./formatscripts.js')
 
 const armorsets = require('../database/armorsets.json');
 const weapontypesaliases = require('../database/weapontypesaliases.json');
+const FuzzySet = require('fuzzyset.js');
 
+const FUZZYCONST = 0.45;
 // Initialize Database
 var knex = require('knex')({
   client: 'mysql',
@@ -150,6 +152,27 @@ module.exports.getItem = async function(item, type){
         return -1;
     return results[0];
 };
+
+module.exports.getFuzzyItem = async function(item, type){
+    // Get all items in database and create FuzzySet from it
+    results = await knex.select('alias').from(`${type}aliases`).catch(err => console.log(err));
+    fuzzyItems = FuzzySet();
+    results.forEach(row => fuzzyItems.add(row.alias));
+    allMatches = fuzzyItems.get(item);
+    if (allMatches == undefined || allMatches.length == 0)
+        return -1;
+    // Add all matched results that pass threshold into return value
+    returnValue = new Set();
+    for (match of allMatches){
+        if (match[0] > FUZZYCONST){
+            originalName = await exports.getOriginalName(match[1], type);
+            returnValue.add(originalName);
+        }
+    }
+    if (returnValue == undefined || returnValue.size == 0)
+        return -1;
+    return returnValue;
+}
 
 // Returns a set from armorsets.json
 module.exports.getArmorSet = async function(baseName){

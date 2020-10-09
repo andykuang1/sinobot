@@ -143,8 +143,8 @@ module.exports.formatSkills = function(item, type){
             \n\n*Colosseum Support*\n**${item.colo_support.split('\n')[0]}**: ${item.colo_support.split('\n')[1]}`
     }
     else if (type == 'armor'){
-        formattedString = `*Story*\n**${itemDetails['story_skill'].split('\n')[0]}**: ${itemDetails['story_skill'].split('\n')[1]}\
-            \n\n*Set Effect*\n**${itemDetails['set_effect'].split('\n')[0]}**: ${itemDetails['set_effect'].split('\n')[1]}`
+        formattedString = `*Story*\n**${item.story_skill.split('\n')[0]}**: ${item.story_skill.split('\n')[1]}\
+            \n\n*Set Effect*\n**${item.set_effect.split('\n')[0]}**: ${item.set_effect.split('\n')[1]}`
     }
     else if (type == 'nightmare'){
         if (item.duration == 0){

@@ -15,6 +15,23 @@ client.once('ready', function () {
     console.log('Client is ready!');
 });
 
+async function sendNotFoundMessage(message, nameToPrint, typeOfItem){
+    notFoundString = `**${nameToPrint}** was not found in the database. `
+    fuzzyMatchedItems = await dbscripts.getFuzzyItem(nameToPrint, typeOfItem);
+    if (fuzzyMatchedItems == -1){
+        notFoundString += 'No close matches were found.';
+        message.channel.send(notFoundString);
+        return;
+    } else {
+        notFoundString += 'Possible matches (Case Insensitive):\n'
+        fuzzyMatchedItems.forEach(name => {
+            notFoundString += `\n**${name}**`;
+        });
+        message.channel.send(notFoundString);
+        return;
+    }
+}
+
 client.on('message', function (message) {
     // Our bot needs to know if it will execute a command
     // It will listen for messages that will start with `!!`
@@ -44,8 +61,9 @@ client.on('message', function (message) {
                 // If item is not in our current database, check if it is an alias. If not, return error
                 async function processWeaponCommand(){
                     item = await dbscripts.getItem(args.join(' '), 'weapons');
+                    // Fuzzy matched response
                     if (item == -1){
-                        message.channel.send(`${args.join(' ')} was not found in the database.`);
+                        sendNotFoundMessage(message, args.join(' '), 'weapons');
                         return;
                     }
                     // Build message to send
@@ -63,7 +81,7 @@ client.on('message', function (message) {
                     parsedArgument = await formatscripts.parseArmorArgument(args);
                     baseName = parsedArgument[0];
                     if (baseName == -1){
-                        message.channel.send(`"${parsedArgument[1]} Set" does not contain the given weapon type.`)
+                        message.channel.send(`"${parsedArgument[1]} Set" does not contain the given weapon type.`);
                         return;
                     }
                     armorWeaponType = parsedArgument[1];
@@ -71,7 +89,7 @@ client.on('message', function (message) {
                     if (itemType.toLowerCase() == 'set'){
                         // If item is not in our current database, check if it is an alias. If not, return error
                         if (itemSet == -1){
-                            message.channel.send(`"${baseName}" was not found in the database.`);
+                            sendNotFoundMessage(message, baseName, 'armorsets');
                             return;
                         }
                         // Send embed message
@@ -81,7 +99,7 @@ client.on('message', function (message) {
                     else if (['head', 'hands', 'feet', 'body'].includes(itemType.toLowerCase())){
                         // If item is not in our current database, check if it is an alias. If not, return error
                         if (itemSet == -1){
-                            message.channel.send(`"${baseName}" was not found in the database.`);
+                            sendNotFoundMessage(message, baseName, 'armorsets');
                             return;
                         }
                         individualItemName = itemSet[formatscripts.capitalize(itemType)];
@@ -97,12 +115,12 @@ client.on('message', function (message) {
                         if (itemSet == -1){
                             itemFullName = await dbscripts.getFullName(baseName, armorWeaponType);
                             if (itemFullName == -1){
-                                message.channel.send(`"${baseName}" was not found in the database.`);
+                                sendNotFoundMessage(message, baseName, 'armor');
                                 return;
                             }
                             item = await dbscripts.getItem(itemFullName, 'armor');
                             if (item == -1){
-                                message.channel.send(`"${baseName}" was not found in the database.`);
+                                sendNotFoundMessage(message, baseName, 'armor');
                                 return;
                             }
                             // Build Message To Send
@@ -125,8 +143,9 @@ client.on('message', function (message) {
                 // If item is not in our current database, check if it is an alias. If not, return error
                 async function processNightmareCommand(){
                     item = await dbscripts.getItem(args.join(' '), 'nightmares');
+                    // Fuzzy matched response
                     if (item == -1){
-                        message.channel.send(`"${args.join(' ')}" was not found in the database.`);
+                        sendNotFoundMessage(message, args.join(' '), 'nightmares');
                         return;
                     }
                     // Build message to send
