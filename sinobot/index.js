@@ -111,12 +111,38 @@ client.on('message', function (message) {
                         if (itemSet == -1){
                             itemFullName = await dbscripts.getFullName(baseName, armorWeaponType);
                             if (itemFullName == -1){
-                                message.channel.send(`"${baseName}" was not found in the database.`);
+                                notFoundString = `**${baseName}** was not found in the database. `
+                                fuzzyMatchedItems = await dbscripts.getFuzzyItem(baseName, 'armor');
+                                if (fuzzyMatchedItems == -1){
+                                    notFoundString += 'No close matches were found.';
+                                    message.channel.send(notFoundString);
+                                    return;
+                                } else {
+                                    notFoundString += 'Possible matches:\n'
+                                    fuzzyMatchedItems.forEach(name => {
+                                        notFoundString += `\n**${name}**`;
+                                    });
+                                    message.channel.send(notFoundString);
+                                    return;
+                                }
                                 return;
                             }
                             item = await dbscripts.getItem(itemFullName, 'armor');
                             if (item == -1){
-                                message.channel.send(`"${baseName}" was not found in the database.`);
+                                notFoundString = `**${baseName}** was not found in the database. `
+                                fuzzyMatchedItems = await dbscripts.getFuzzyItem(baseName, 'armor');
+                                if (fuzzyMatchedItems == -1){
+                                    notFoundString += 'No close matches were found.';
+                                    message.channel.send(notFoundString);
+                                    return;
+                                } else {
+                                    notFoundString += 'Possible matches:\n'
+                                    fuzzyMatchedItems.forEach(name => {
+                                        notFoundString += `\n**${name}**`;
+                                    });
+                                    message.channel.send(notFoundString);
+                                    return;
+                                }
                                 return;
                             }
                             // Build Message To Send
