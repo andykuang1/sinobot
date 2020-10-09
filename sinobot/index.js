@@ -15,6 +15,23 @@ client.once('ready', function () {
     console.log('Client is ready!');
 });
 
+async function sendNotFoundMessage(message, nameToPrint, typeOfItem){
+    notFoundString = `**${nameToPrint}** was not found in the database. `
+    fuzzyMatchedItems = await dbscripts.getFuzzyItem(nameToPrint, typeOfItem);
+    if (fuzzyMatchedItems == -1){
+        notFoundString += 'No close matches were found.';
+        message.channel.send(notFoundString);
+        return;
+    } else {
+        notFoundString += 'Possible matches:\n'
+        fuzzyMatchedItems.forEach(name => {
+            notFoundString += `\n**${name}**`;
+        });
+        message.channel.send(notFoundString);
+        return;
+    }
+}
+
 client.on('message', function (message) {
     // Our bot needs to know if it will execute a command
     // It will listen for messages that will start with `!!`
@@ -46,20 +63,7 @@ client.on('message', function (message) {
                     item = await dbscripts.getItem(args.join(' '), 'weapons');
                     // Fuzzy matched response
                     if (item == -1){
-                        notFoundString = `**${args.join(' ')}** was not found in the database. `
-                        fuzzyMatchedItems = await dbscripts.getFuzzyItem(args.join(' '), 'weapons');
-                        if (fuzzyMatchedItems == -1){
-                            notFoundString += 'No close matches were found.';
-                            message.channel.send(notFoundString);
-                            return;
-                        } else {
-                            notFoundString += 'Possible matches:\n'
-                            fuzzyMatchedItems.forEach(name => {
-                                notFoundString += `\n**${name}**`;
-                            });
-                            message.channel.send(notFoundString);
-                            return;
-                        }
+                        sendNotFoundMessage(message, args.join(' '), 'weapons');
                         return;
                     }
                     // Build message to send
@@ -111,38 +115,12 @@ client.on('message', function (message) {
                         if (itemSet == -1){
                             itemFullName = await dbscripts.getFullName(baseName, armorWeaponType);
                             if (itemFullName == -1){
-                                notFoundString = `**${baseName}** was not found in the database. `
-                                fuzzyMatchedItems = await dbscripts.getFuzzyItem(baseName, 'armor');
-                                if (fuzzyMatchedItems == -1){
-                                    notFoundString += 'No close matches were found.';
-                                    message.channel.send(notFoundString);
-                                    return;
-                                } else {
-                                    notFoundString += 'Possible matches:\n'
-                                    fuzzyMatchedItems.forEach(name => {
-                                        notFoundString += `\n**${name}**`;
-                                    });
-                                    message.channel.send(notFoundString);
-                                    return;
-                                }
+                                sendNotFoundMessage(message, baseName, 'armor');
                                 return;
                             }
                             item = await dbscripts.getItem(itemFullName, 'armor');
                             if (item == -1){
-                                notFoundString = `**${baseName}** was not found in the database. `
-                                fuzzyMatchedItems = await dbscripts.getFuzzyItem(baseName, 'armor');
-                                if (fuzzyMatchedItems == -1){
-                                    notFoundString += 'No close matches were found.';
-                                    message.channel.send(notFoundString);
-                                    return;
-                                } else {
-                                    notFoundString += 'Possible matches:\n'
-                                    fuzzyMatchedItems.forEach(name => {
-                                        notFoundString += `\n**${name}**`;
-                                    });
-                                    message.channel.send(notFoundString);
-                                    return;
-                                }
+                                sendNotFoundMessage(message, baseName, 'armor');
                                 return;
                             }
                             // Build Message To Send
@@ -167,20 +145,7 @@ client.on('message', function (message) {
                     item = await dbscripts.getItem(args.join(' '), 'nightmares');
                     // Fuzzy matched response
                     if (item == -1){
-                        notFoundString = `**${args.join(' ')}** was not found in the database. `
-                        fuzzyMatchedItems = await dbscripts.getFuzzyItem(args.join(' '), 'nightmares');
-                        if (fuzzyMatchedItems == -1){
-                            notFoundString += 'No close matches were found.';
-                            message.channel.send(notFoundString);
-                            return;
-                        } else {
-                            notFoundString += 'Possible matches:\n'
-                            fuzzyMatchedItems.forEach(name => {
-                                notFoundString += `\n**${name}**`;
-                            });
-                            message.channel.send(notFoundString);
-                            return;
-                        }
+                        sendNotFoundMessage(message, args.join(' '), 'nightmares');
                         return;
                     }
                     // Build message to send
