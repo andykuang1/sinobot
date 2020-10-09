@@ -155,21 +155,22 @@ module.exports.getItem = async function(item, type){
 
 module.exports.getFuzzyItem = async function(item, type){
     // Get all items in database and create FuzzySet from it
-    results = await knex.select('itemName').from(`${type}db`).catch(err => console.log(err));
+    results = await knex.select('alias').from(`${type}aliases`).catch(err => console.log(err));
     fuzzyItems = FuzzySet();
-    results.forEach(row => fuzzyItems.add(row.itemName));
+    results.forEach(row => fuzzyItems.add(row.alias));
     allMatches = fuzzyItems.get(item);
     if (allMatches == undefined || allMatches.length == 0)
         return -1;
     // Add all matched results that pass threshold into return value
-    returnValue = []
-    allMatches.forEach(match => {
-        console.log(match);
-        if (match[0] > FUZZYCONST)
-            returnValue.push(match[1]);
-    })
-    if (returnValue == undefined || returnValue == 0)
-        return -1
+    returnValue = new Set();
+    for (match of allMatches){
+        if (match[0] > FUZZYCONST){
+            originalName = await exports.getOriginalName(match[1], type);
+            returnValue.add(originalName);
+        }
+    }
+    if (returnValue == undefined || returnValue.size == 0)
+        return -1;
     return returnValue;
 }
 

@@ -44,6 +44,7 @@ client.on('message', function (message) {
                 // If item is not in our current database, check if it is an alias. If not, return error
                 async function processWeaponCommand(){
                     item = await dbscripts.getItem(args.join(' '), 'weapons');
+                    // Fuzzy matched response
                     if (item == -1){
                         notFoundString = `**${args.join(' ')}** was not found in the database. `
                         fuzzyMatchedItems = await dbscripts.getFuzzyItem(args.join(' '), 'weapons');
@@ -138,8 +139,22 @@ client.on('message', function (message) {
                 // If item is not in our current database, check if it is an alias. If not, return error
                 async function processNightmareCommand(){
                     item = await dbscripts.getItem(args.join(' '), 'nightmares');
+                    // Fuzzy matched response
                     if (item == -1){
-                        message.channel.send(`"${args.join(' ')}" was not found in the database.`);
+                        notFoundString = `**${args.join(' ')}** was not found in the database. `
+                        fuzzyMatchedItems = await dbscripts.getFuzzyItem(args.join(' '), 'nightmares');
+                        if (fuzzyMatchedItems == -1){
+                            notFoundString += 'No close matches were found.';
+                            message.channel.send(notFoundString);
+                            return;
+                        } else {
+                            notFoundString += 'Possible matches:\n'
+                            fuzzyMatchedItems.forEach(name => {
+                                notFoundString += `\n**${name}**`;
+                            });
+                            message.channel.send(notFoundString);
+                            return;
+                        }
                         return;
                     }
                     // Build message to send
