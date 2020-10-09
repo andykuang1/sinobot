@@ -23,7 +23,7 @@ async function sendNotFoundMessage(message, nameToPrint, typeOfItem){
         message.channel.send(notFoundString);
         return;
     } else {
-        notFoundString += 'Possible matches:\n'
+        notFoundString += 'Possible matches (Case Insensitive):\n'
         fuzzyMatchedItems.forEach(name => {
             notFoundString += `\n**${name}**`;
         });
@@ -81,7 +81,7 @@ client.on('message', function (message) {
                     parsedArgument = await formatscripts.parseArmorArgument(args);
                     baseName = parsedArgument[0];
                     if (baseName == -1){
-                        message.channel.send(`"${parsedArgument[1]} Set" does not contain the given weapon type.`)
+                        message.channel.send(`"${parsedArgument[1]} Set" does not contain the given weapon type.`);
                         return;
                     }
                     armorWeaponType = parsedArgument[1];
@@ -89,7 +89,7 @@ client.on('message', function (message) {
                     if (itemType.toLowerCase() == 'set'){
                         // If item is not in our current database, check if it is an alias. If not, return error
                         if (itemSet == -1){
-                            message.channel.send(`"${baseName}" was not found in the database.`);
+                            sendNotFoundMessage(message, baseName, 'armorsets');
                             return;
                         }
                         // Send embed message
@@ -99,7 +99,7 @@ client.on('message', function (message) {
                     else if (['head', 'hands', 'feet', 'body'].includes(itemType.toLowerCase())){
                         // If item is not in our current database, check if it is an alias. If not, return error
                         if (itemSet == -1){
-                            message.channel.send(`"${baseName}" was not found in the database.`);
+                            sendNotFoundMessage(message, baseName, 'armorsets');
                             return;
                         }
                         individualItemName = itemSet[formatscripts.capitalize(itemType)];
