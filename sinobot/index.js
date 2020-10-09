@@ -45,7 +45,20 @@ client.on('message', function (message) {
                 async function processWeaponCommand(){
                     item = await dbscripts.getItem(args.join(' '), 'weapons');
                     if (item == -1){
-                        message.channel.send(`${args.join(' ')} was not found in the database.`);
+                        notFoundString = `**${args.join(' ')}** was not found in the database. `
+                        fuzzyMatchedItems = await dbscripts.getFuzzyItem(args.join(' '), 'weapons');
+                        if (fuzzyMatchedItems == -1){
+                            notFoundString += 'No close matches were found.';
+                            message.channel.send(notFoundString);
+                            return;
+                        } else {
+                            notFoundString += 'Possible matches:\n'
+                            fuzzyMatchedItems.forEach(name => {
+                                notFoundString += `\n**${name}**`;
+                            });
+                            message.channel.send(notFoundString);
+                            return;
+                        }
                         return;
                     }
                     // Build message to send
