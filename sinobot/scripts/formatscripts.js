@@ -18,6 +18,27 @@ module.exports.capitalize = function(item){
     return stringToBuild.join(' ');
 };
 
+// ------------------------------------------------------ ARGUMENT PARSING ------------------------------------------------------
+
+module.exports.parseWeaponsFilterArgument = async function(arg){
+    page = 1;
+    elements = new Set();
+    for (item of arg){
+        if (item.toLowerCase().includes('page:'))
+            page = item.replace('page:', '');
+        else if (await dbscripts.getItem(item, 'elements') != -1){
+            elements.add(await dbscripts.getOriginalName(item, 'elements'));
+        }
+    }
+    if (elements.size == 0){
+        data = await dbscripts.get_column('elementsDB', 'itemName');
+        data.forEach(row => {
+            elements.add(row.itemName);
+        });
+    }
+    return {'page': page, 'ele': elements};
+};
+
 // takes in an arg such as "set hammer replicant" and returns [itemName, itemWeapon] ex. ['replicant', 'Heavy']
 module.exports.parseArmorArgument = async function(args){
     // has [itemType], so is an armor set
@@ -88,6 +109,16 @@ module.exports.parseArmorArgument = async function(args){
         }
     }
     return [itemName, itemWeapon];
+};
+
+// ------------------------------------------------------ EMBED FORMATTING ------------------------------------------------------
+
+module.exports.formatListItems = function(items, type){
+    itemList = ''
+    for (item of items){
+        itemList += `[${item.itemName}](https://sinoalice.game-db.tw/${type}/${item.altName.replace(' ', '%20')})\n`
+    }
+    return itemList;
 };
 
 module.exports.formatWeaponStats = function(item){
@@ -162,3 +193,20 @@ module.exports.formatSkills = function(item, type){
     }
     return formattedString;
 };
+
+// -------------------------------------------------------- MISC SCRIPTS --------------------------------------------------------
+
+module.exports.getPageOfItems = function(list, page){
+    startIndex = (page-1) * 10;
+    if (startIndex >= list.length){
+        if (list.length % 10 == 0)
+            startIndex = list.length - 10 - 1;
+        else
+            startIndex = list.length - (list.length % 10);
+        endIndex = list.length;
+    }
+    endIndex = startIndex + 10;
+    if (endIndex > list.length)
+        endIndex = list.length;
+    return list.slice(startIndex, endIndex);
+}

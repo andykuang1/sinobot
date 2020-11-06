@@ -5,6 +5,20 @@ const setbonuses = require('../database/setbonuses.json');
 
 const Discord = require('discord.js');
 
+module.exports.createEmbedMessageListItems = function(items, type, currentPage, totalPages){
+    listItems = formatscripts.formatListItems(items, type);
+    embedMessage = new Discord.MessageEmbed({
+        fields: [{
+            name: 'Filtered Items',
+            value: listItems
+        }],
+        footer: {
+            text: `Page ${currentPage} of ${totalPages}`
+        }
+    });
+    return embedMessage;
+}
+
 module.exports.createEmbedMessageItem = function(item, type){
     itemTitle = `${item.itemName} \n${item.altName}`;
     itemThumbnail = {url: item.icon};
@@ -96,5 +110,6 @@ module.exports.createEmbedMessageArmorSet = async function(itemSet, setName){
             }
         ]
     });
+    console.log(itemStats);
     return embedMessage;
 };

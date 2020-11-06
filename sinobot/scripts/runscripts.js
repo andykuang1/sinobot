@@ -13,21 +13,18 @@ function runScraperScript(type){
 };
 
 async function addArmorAliases(){
-    data = await dbscripts.get_armorsets_aliases();
-    currentAliases = [];
-    if (data !== undefined && data.length > 0)
-        data.forEach(row => {currentAliases.push(row.alias);})
+    currentAliases = await dbscripts.get_armorsets_aliases();
     for (setName in armorsets){
         aliasesList = new Set();
         [setName, setName.replace(' ', ''), setName.replace('\'', ''), setName.replace(' ', '').replace('\'', '')].forEach(item => aliasesList.add(item));
         aliasesList.forEach(async function(alias){
             if (!(currentAliases.includes(alias))){
-                await dbscripts.add_alias(alias, setName);
+                await dbscripts.addAlias(alias, setName);
             }
         })
     }
-}
-addArmorAliases();
+};
+//addArmorAliases();
 
 function runWeaponsScript(message){
     if (updatingWeapons == true){

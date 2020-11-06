@@ -82,6 +82,11 @@ create_nightmares_db_script = `CREATE TABLE nightmaresDB(
     duration INT
     );`;
 
+create_elements_db_script = `CREATE TABLE elementsDB(
+    id INT auto_increment PRIMARY KEY,
+    ele VARCHAR(20) UNIQUE
+    );`;
+
 create_weapons_alias_script = `CREATE TABLE weaponsaliases(
     id INT auto_increment PRIMARY KEY,
     alias VARCHAR(255) UNIQUE,
@@ -109,6 +114,12 @@ create_nightmare_alias_script = `CREATE TABLE nightmaresaliases(
     FOREIGN KEY(originalName) REFERENCES nightmaresDB(itemName)
     );`;
 
+create_elements_alias_script = `CREATE TABLE elementsaliases(
+    id INT auto_increment PRIMARY KEY,
+    alias VARCHAR(255) UNIQUE,
+    originalName VARCHAR(20)
+    );`;
+
 // ------------------------------------------------------ SELECTS ------------------------------------------------------
 
 // Columns returned: originalName
@@ -120,14 +131,28 @@ module.exports.getOriginalName = async function(itemName, type){
 };
 
 // Columns returned: alias
-module.exports.get_armor_aliases = async function(){
-    return knex.select('alias').from('armoraliases').catch(err => console.log(err));
+module.exports.get_armorsets_aliases = async function(){
+    data = await knex.select('alias').from('armorsetsaliases').catch(err => console.log(err));
+    currentAliases = [];
+    if (data !== undefined && data.length > 0)
+        data.forEach(row => {currentAliases.push(row.alias);});
+    return currentAliases;
 };
 
-// Columns returned: alias
-module.exports.get_armorsets_aliases = async function(){
-    return knex.select('alias').from('armorsetsaliases').catch(err => console.log(err));
-};
+// Returns the specified column of the given table
+module.exports.get_column = async function(table, column){
+    rows = await knex.select(column).from(table).catch(err => console.log(err));
+    if (rows === undefined || rows.length == 0)
+        return -1;
+    return rows;
+}
+
+module.exports.getNumberOfItems = async function(table){
+    rows = await knex.select('*').from(table).catch(err => console.log(err));
+    if (rows === undefined || rows.length == 0)
+        return -1;
+    return rows.length;
+}
 
 // returns the full name of the armor item    ex. 2B's Goggles [Blade] / Nameless Youth's Hairband (Blade)
 module.exports.getFullName = async function(item, itemWeapon){
@@ -142,7 +167,7 @@ module.exports.getFullName = async function(item, itemWeapon){
     return -1;
 };
 
-// Columns returned varies based on weapon, armor, nightmare
+// Columns returned varies based on weapon, armor, nightmare, element, etc
 module.exports.getItem = async function(item, type){
     itemNameRows = await knex.select('originalName').from(`${type}aliases`).where('alias', '=', item).catch(err => console.log(err));
     if (itemNameRows === undefined || itemNameRows == 0)
@@ -172,7 +197,17 @@ module.exports.getFuzzyItem = async function(item, type){
     if (returnValue == undefined || returnValue.size == 0)
         return -1;
     return returnValue;
-}
+};
+
+// Returns all items that match filters
+module.exports.getFilteredItems = async function(type, filters){
+    data = await knex.select('*').from(`${type}db`).whereIn('ele', Array.from(filters['ele']));
+    if (data === undefined || data.length == 0)
+        return -1;
+    return data;
+    //.where('items.itemType', 'like', `%${searchCriteria.itemType || ''}%`)
+    //.where('items.category', 'like', `%${searchCriteria.category || ''}%`)
+};
 
 // Returns a set from armorsets.json
 module.exports.getArmorSet = async function(baseName){
@@ -192,9 +227,14 @@ module.exports.getArmorSet = async function(baseName){
 
 // ------------------------------------------------------ INSERTS ------------------------------------------------------
 
-module.exports.add_alias = async function(aliasToInsert, nameToInsert){
+module.exports.addAlias = async function(aliasToInsert, nameToInsert){
     knex.insert({alias: aliasToInsert, originalName: nameToInsert}).into('armorsetsaliases').catch(err => console.log(err));
 };
+
+async function addFilters(){
+    
+    knex.insert().into('filters').catch(err => console.log(err));   
+}
 
 // ------------------------------------------------------ CLEANUP ------------------------------------------------------
 
