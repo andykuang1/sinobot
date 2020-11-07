@@ -44,9 +44,9 @@ client.on('message', function (message) {
             // !commands
             case 'commands':
             case 'help':
+            case 'h':
                 console.log(message.content);
-                message.channel.send('Available Commands: \n**!!help**, \n**!!weapons**, \n**!!armor**, \n**!!nightmares**')
-
+                message.channel.send('Available Commands: \n**!!h**elp, \n**!!w**eapons, \n**!!w**eapons**f**ilter, \n**!!a**rmor, \n**!!n**ightmares')
                 break;
             // !update [type]    ex. !update weapons
             case 'update':
@@ -71,6 +71,22 @@ client.on('message', function (message) {
                     message.channel.send(embedMessage);
                 }
                 processWeaponCommand();
+                break;
+            case 'weaponf':
+            case 'weaponsf':
+            case 'wf':
+            console.log(message.content);
+                async function processWeaponFilter(){
+                    filters = await formatscripts.parseWeaponsFilterArgument(args);
+                    filteredItems = await dbscripts.getFilteredItems('weapons', filters);
+                    if (filteredItems == -1)
+                        message.channel.send('No items with the given filters were found.');
+                    singlePageOfItems = formatscripts.getPageOfItems(filteredItems, filters['page']);
+                    totalPages = Math.ceil(filteredItems.length/10);
+                    embedMessage = createembedscripts.createEmbedMessageListItems(singlePageOfItems, 'weapons', filters['page'], totalPages);
+                    message.channel.send(embedMessage);
+                }
+                processWeaponFilter();
                 break;
             // !armor [itemType:optional] [itemWeapon:defaults to 'Blade'] [baseName]    ex. !armor set hammer replicant
             case 'armor':
