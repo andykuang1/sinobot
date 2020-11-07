@@ -21,11 +21,14 @@ module.exports.capitalize = function(item){
 // ------------------------------------------------------ ARGUMENT PARSING ------------------------------------------------------
 
 module.exports.parseWeaponsFilterArgument = async function(arg){
-    page = 1;
+    var page = 1;
     elements = new Set();
+    var cost = '';
     for (item of arg){
         if (item.toLowerCase().includes('page:'))
             page = item.replace('page:', '');
+        else if (item.toLowerCase().includes('cost:'))
+            cost = item.replace('cost:', '');
         else if (await dbscripts.getItem(item, 'elements') != -1){
             elements.add(await dbscripts.getOriginalName(item, 'elements'));
         }
@@ -36,7 +39,7 @@ module.exports.parseWeaponsFilterArgument = async function(arg){
             elements.add(row.itemName);
         });
     }
-    return {'page': page, 'ele': elements};
+    return {'page': page, 'ele': elements, 'cost': cost};
 };
 
 // takes in an arg such as "set hammer replicant" and returns [itemName, itemWeapon] ex. ['replicant', 'Heavy']
