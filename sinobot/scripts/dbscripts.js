@@ -202,7 +202,7 @@ module.exports.getFuzzyItem = async function(item, type){
 // Returns all items that match filters
 module.exports.getFilteredItems = async function(type, filters){
     data = await knex.select('*').from(`${type}db`).whereIn('ele', Array.from(filters['ele']))
-        .where('weapon_cost', 'like', `%${filters['cost']}%`);
+        .whereIn('weapon_cost', Array.from(filters['cost']));
     if (data === undefined || data.length == 0)
         return -1;
     return data;
@@ -231,11 +231,6 @@ module.exports.getArmorSet = async function(baseName){
 module.exports.addAlias = async function(aliasToInsert, nameToInsert){
     knex.insert({alias: aliasToInsert, originalName: nameToInsert}).into('armorsetsaliases').catch(err => console.log(err));
 };
-
-async function addFilters(){
-    
-    knex.insert().into('filters').catch(err => console.log(err));   
-}
 
 // ------------------------------------------------------ CLEANUP ------------------------------------------------------
 
