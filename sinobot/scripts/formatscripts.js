@@ -23,12 +23,15 @@ module.exports.capitalize = function(item){
 module.exports.parseWeaponsFilterArgument = async function(arg){
     var page = 1;
     elements = new Set();
-    var cost = '';
+    var cost = new Set();
     for (item of arg){
         if (item.toLowerCase().includes('page:'))
             page = item.replace('page:', '');
-        else if (item.toLowerCase().includes('cost:'))
-            cost = item.replace('cost:', '');
+        else if (item.toLowerCase().includes('cost:')){
+            costText = item.replace('cost:', '');
+            costArray = costText.split(',');
+            costArray.forEach(item => {cost.add(item);});
+        }
         else if (await dbscripts.getItem(item, 'elements') != -1){
             elements.add(await dbscripts.getOriginalName(item, 'elements'));
         }
@@ -38,6 +41,10 @@ module.exports.parseWeaponsFilterArgument = async function(arg){
         data.forEach(row => {
             elements.add(row.itemName);
         });
+    }
+    if (cost.size == 0){
+        for (i=1; i<100; i++)
+            cost.add(i);
     }
     return {'page': page, 'ele': elements, 'cost': cost};
 };
